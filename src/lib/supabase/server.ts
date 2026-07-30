@@ -4,6 +4,7 @@ import {
   SUPABASE_ANON_KEY,
   SUPABASE_SCHEMA,
   SUPABASE_URL,
+  assertSupabaseConfig,
   noStoreFetch,
 } from "./config";
 
@@ -12,6 +13,7 @@ import {
  * Lê/escreve a sessão via cookies. Schema `rede`.
  */
 export async function createClient() {
+  assertSupabaseConfig();
   const cookieStore = await cookies();
 
   return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {

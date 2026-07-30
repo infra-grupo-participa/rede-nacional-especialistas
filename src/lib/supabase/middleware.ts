@@ -4,6 +4,7 @@ import {
   SUPABASE_ANON_KEY,
   SUPABASE_SCHEMA,
   SUPABASE_URL,
+  assertSupabaseConfig,
   noStoreFetch,
 } from "./config";
 
@@ -12,6 +13,7 @@ import {
  * raiz. Mantém o token fresco para Server Components.
  */
 export async function updateSession(request: NextRequest) {
+  assertSupabaseConfig();
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
