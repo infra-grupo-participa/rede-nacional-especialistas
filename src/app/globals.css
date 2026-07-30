@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
-/* A rede tem paleta fixa (laranja é o ambiente); não seguimos o dark mode do SO. */
+/* Paleta fixa do design novo: a página é BRANCA, laranja é só ação/seleção.
+   Não seguimos o dark mode do SO. */
 
 :root {
-  --fundo: #fe7413;
+  --fundo: #ffffff;
   --ink: #111111;
   --surface: #ffffff;
-  --paper: #fff6ef;
-  --line: #efe2d6;
-  --muted: #6b6259;
+  --paper: #fbf7f3;
+  --line: #e9e3dd;
+  --muted: #6e6a66;
 }
 
 *,

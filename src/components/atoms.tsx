@@ -4,7 +4,8 @@ import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import { C, F, BORDA } from "@/lib/tokens";
 import { iniciais, tintaAvatar } from "@/lib/utils";
-import { nivelDe, type Qualificacao } from "@/lib/qualificacoes";
+import type { Qualificacao } from "@/lib/qualificacoes";
+import { SeloNivel } from "@/components/niveis";
 
 /* ---------------------------------------------------------------- Placa -- */
 /* A "placa": sigla do estado em tabular. É o elemento que substitui o mapa. */
@@ -83,8 +84,9 @@ export function Avatar({
 }
 
 /* ------------------------------------------------------------- TagNivel -- */
-/* Tag de QUALIFICAÇÃO estilizada ao lado do nome. Peça central do produto.
-   THB é discreta; Aurum→D.Vermelho ganham brilho e gradiente. */
+/* Selo de QUALIFICAÇÃO ao lado do nome (design novo). Ouro/Platina = estrela,
+   Diamante/Vermelho = gema. O nível base THB NÃO mostra selo (decisão Marcio).
+   Delega ao SeloNivel para manter um só visual em todo o app. */
 export function TagNivel({
   qualificacao,
   size = "md",
@@ -92,43 +94,7 @@ export function TagNivel({
   qualificacao: Qualificacao;
   size?: "sm" | "md";
 }) {
-  const n = nivelDe(qualificacao);
-  const alto = n.ordem >= 3; // diamante e diamante vermelho
-  const dims =
-    size === "sm"
-      ? { height: 16, padding: "0 6px", fontSize: 9.5, gap: 3 }
-      : { height: 20, padding: "0 8px", fontSize: 11, gap: 4 };
-
-  return (
-    <span
-      className="inline-flex items-center rounded-full font-bold uppercase shrink-0 align-middle"
-      style={{
-        ...dims,
-        fontFamily: F.mono,
-        letterSpacing: "0.04em",
-        color: n.texto,
-        background: `linear-gradient(135deg, ${n.cor}, ${n.brilho})`,
-        border: `1px solid ${n.cor}`,
-        boxShadow: alto ? `0 0 0 1px ${n.brilho}55, 0 1px 4px ${n.cor}44` : "none",
-      }}
-      title={`Qualificação: ${n.rotulo}`}
-    >
-      {n.ordem >= 1 && (
-        <span
-          style={{
-            width: dims.fontSize * 0.55,
-            height: dims.fontSize * 0.55,
-            borderRadius: 2,
-            background: n.texto,
-            opacity: 0.85,
-            marginRight: dims.gap,
-            transform: "rotate(45deg)",
-          }}
-        />
-      )}
-      {n.rotulo}
-    </span>
-  );
+  return <SeloNivel q={qualificacao} tamanho={size === "sm" ? "sm" : "lg"} />;
 }
 
 /* --------------------------------------------------------------- Eyebrow -- */

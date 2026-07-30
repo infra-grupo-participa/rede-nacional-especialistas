@@ -26,8 +26,15 @@ export interface NivelInfo {
   texto: string;
   /** brilho/borda para o efeito estilizado */
   brilho: string;
+  /** ícone do selo (design novo): estrela p/ ouro/platina, gema p/ diamantes,
+   *  nenhum p/ o nível base THB (decisão Marcio: esconder selo do THB). */
+  icone: "estrela" | "gema" | null;
+  /** faixa comercial exibida no BlocoNiveis (origem = plano THB). */
+  faixa: string;
 }
 
+/* Cores/ícones do design novo (App.jsx NIVEIS): ouro #E3A81C, platina #2F7DE1,
+   diamante #1AA6D8, vermelho #D6362F. O THB (base) não tem selo. */
 export const NIVEIS: Record<Qualificacao, NivelInfo> = {
   thb: {
     key: "thb",
@@ -36,40 +43,55 @@ export const NIVEIS: Record<Qualificacao, NivelInfo> = {
     cor: "#E7E1D9",
     texto: "#4A443F",
     brilho: "#CDBFB0",
+    icone: null,
+    faixa: "Comunidade THB",
   },
   aurum: {
     key: "aurum",
-    rotulo: "Aurum",
+    rotulo: "Ouro",
     ordem: 1,
-    cor: "#E8B23A", // dourado
+    cor: "#E3A81C", // dourado
     texto: "#3D2A00",
     brilho: "#FFD873",
+    icone: "estrela",
+    faixa: "até R$ 50 mil",
   },
   platina: {
     key: "platina",
     rotulo: "Platina",
     ordem: 2,
-    cor: "#8FC7E8", // azul claro
-    texto: "#0C3550",
-    brilho: "#CDE9F8",
+    cor: "#2F7DE1", // azul
+    texto: "#FFFFFF",
+    brilho: "#8FC0F5",
+    icone: "estrela",
+    faixa: "acima de R$ 50 mil",
   },
   diamante: {
     key: "diamante",
     rotulo: "Diamante",
     ordem: 3,
-    cor: "#1E5BC6", // azul escuro e intenso
+    cor: "#1AA6D8", // azul diamante
     texto: "#FFFFFF",
-    brilho: "#5B93F0",
+    brilho: "#7FD6F0",
+    icone: "gema",
+    faixa: "acima de R$ 1 milhão",
   },
   diamante_vermelho: {
     key: "diamante_vermelho",
     rotulo: "Diamante Vermelho",
     ordem: 4,
-    cor: "#D31F2B", // vermelho — topo
+    cor: "#D6362F", // vermelho — topo
     texto: "#FFFFFF",
-    brilho: "#FF5C67",
+    brilho: "#FF7A72",
+    icone: "gema",
+    faixa: "acima de R$ 2 milhões",
   },
 };
+
+/** true quando o nível deve exibir selo (todos, menos o base THB). */
+export function temSelo(q: Qualificacao | null | undefined): boolean {
+  return nivelDe(q).icone !== null;
+}
 
 export const NIVEIS_ORDENADOS: NivelInfo[] = Object.values(NIVEIS).sort(
   (a, b) => a.ordem - b.ordem,
