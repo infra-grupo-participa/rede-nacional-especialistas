@@ -15,7 +15,7 @@ const REDES = [
 
 export function Rodape() {
   return (
-    <footer className="mt-10 hidden md:block" style={{ borderTop: `1px solid ${C.line}`, background: C.paper }}>
+    <footer className="mt-10" style={{ borderTop: `1px solid ${C.line}`, background: C.paper }}>
       <div className="mx-auto flex max-w-[1160px] items-start justify-between gap-8 px-6 py-8">
         <div className="max-w-md">
           <Logo altura={56} />
