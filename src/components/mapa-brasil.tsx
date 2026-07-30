@@ -1,32 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { C, F } from "@/lib/tokens";
-import { MAPA_PATHS, MAPA_VIEWBOX } from "@/lib/mapa-brasil";
+import { useMemo } from "react";
+import { C, F, BORDA } from "@/lib/tokens";
+import { MAPA, MAPA_VB } from "@/lib/mapa-brasil";
 import { ESTADO_POR_UF } from "@/lib/estados";
 
-/** Interpola a "temperatura" de um estado (0..1) para uma tinta laranja→preta. */
-function tinta(n: number, max: number): { fill: string; stroke: string } {
-  if (n === 0) return { fill: "#FFD9BC", stroke: "#FCA968" }; // vazio: laranja bem claro
-  const t = max > 0 ? n / max : 0;
-  // do laranja claro ao preto, passando pelo laranja forte
-  if (t < 0.5) {
-    // #FFB877 → #FE7413
-    const k = t / 0.5;
-    const mix = (a: number, b: number) => Math.round(a + (b - a) * k);
-    return {
-      fill: `rgb(${mix(255, 254)}, ${mix(184, 116)}, ${mix(119, 19)})`,
-      stroke: C.ink,
-    };
-  }
-  // #FE7413 → #111111
-  const k = (t - 0.5) / 0.5;
-  const mix = (a: number, b: number) => Math.round(a + (b - a) * k);
-  return {
-    fill: `rgb(${mix(254, 17)}, ${mix(116, 17)}, ${mix(19, 17)})`,
-    stroke: C.ink,
-  };
+/* MapaBrasil — cópia FIEL do App.jsx (MVP). viewBox 1000x1031, siglas nos estados
+   grandes, estados pequenos (p:true) com linha puxada + balão, coropletia laranja
+   por densidade. Um toque seleciona e abre a folha do estado (onAbrir). */
+
+function misturar(de: string, para: string, t: number): string {
+  const h = (c: string): [number, number, number] => [
+    parseInt(c.slice(1, 3), 16),
+    parseInt(c.slice(3, 5), 16),
+    parseInt(c.slice(5, 7), 16),
+  ];
+  const [r1, g1, b1] = h(de);
+  const [r2, g2, b2] = h(para);
+  const m = (a: number, b: number) => Math.round(a + (b - a) * t);
+  return `rgb(${m(r1, r2)}, ${m(g1, g2)}, ${m(b1, b2)})`;
 }
 
 export function MapaBrasil({
@@ -34,88 +26,145 @@ export function MapaBrasil({
   onEstado,
 }: {
   contagem: Record<string, number>;
-  /** Se fornecido, o clique chama isto em vez de navegar direto para /estado/[uf]. */
   onEstado?: (uf: string) => void;
 }) {
-  const router = useRouter();
-  const [hover, setHover] = useState<string | null>(null);
-  const max = Math.max(1, ...Object.values(contagem));
+  const [vb0, vb1] = MAPA_VB;
+  const max = useMemo(
+    () => Math.max(1, ...Object.values(contagem)),
+    [contagem],
+  );
 
-  const abrir = (uf: string) => {
-    if (onEstado) onEstado(uf);
-    else router.push(`/estado/${uf}`);
+  const preenchimento = (uf: string) => {
+    const n = contagem[uf] || 0;
+    if (n === 0) return "#EDE7E1";
+    return misturar("#FFE2C7", C.laranja, 0.2 + 0.8 * Math.sqrt(n / max));
   };
+  const corRotulo = () => C.ink;
 
-  const ativo = hover;
-  const infoAtivo = ativo ? ESTADO_POR_UF[ativo] : null;
-  const nAtivo = ativo ? (contagem[ativo] ?? 0) : 0;
+  const escolher = (uf: string) => onEstado?.(uf);
 
   return (
-    <div className="relative">
-      <svg
-        viewBox={MAPA_VIEWBOX}
-        role="group"
-        aria-label="Mapa do Brasil — clique num estado"
-        style={{ width: "100%", height: "auto", display: "block" }}
-      >
-        {Object.entries(MAPA_PATHS).map(([uf, d]) => {
-          const n = contagem[uf] ?? 0;
-          const { fill, stroke } = tinta(n, max);
-          const isHover = hover === uf;
-          const clicavel = true;
-          return (
-            <path
-              key={uf}
-              d={d}
-              fill={isHover ? C.ink : fill}
-              stroke={isHover ? C.laranja : stroke}
-              strokeWidth={isHover ? 1.4 : 0.7}
-              style={{
-                cursor: clicavel ? "pointer" : "default",
-                transition: "fill .12s, stroke .12s",
-              }}
-              tabIndex={0}
-              role="button"
-              aria-label={`${ESTADO_POR_UF[uf]?.nome ?? uf}: ${n} ${n === 1 ? "especialista" : "especialistas"}`}
-              onMouseEnter={() => setHover(uf)}
-              onMouseLeave={() => setHover((h) => (h === uf ? null : h))}
-              onFocus={() => setHover(uf)}
-              onBlur={() => setHover((h) => (h === uf ? null : h))}
-              onClick={() => abrir(uf)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  abrir(uf);
-                }
-              }}
-            />
-          );
-        })}
-      </svg>
+    <div className="px-4 pb-10">
+      <div className="rounded-2xl p-3" style={{ background: C.surface, border: BORDA }}>
+        <svg
+          viewBox={`0 0 ${vb0} ${vb1}`}
+          width="100%"
+          role="group"
+          aria-label="Mapa do Brasil por estado"
+          style={{ display: "block", touchAction: "manipulation" }}
+        >
+          {Object.keys(MAPA).map((uf) => {
+            const n = contagem[uf] || 0;
+            const vazio = n === 0;
+            const nome = ESTADO_POR_UF[uf]?.nome || uf;
+            return (
+              <path
+                key={uf}
+                d={MAPA[uf].d}
+                fill={preenchimento(uf)}
+                stroke="#fff"
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+                onClick={() => escolher(uf)}
+                style={{ cursor: vazio ? "default" : "pointer" }}
+                role="button"
+                tabIndex={0}
+                aria-label={`${nome}, ${n} profissionais`}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter" || ev.key === " ") {
+                    ev.preventDefault();
+                    escolher(uf);
+                  }
+                }}
+              />
+            );
+          })}
 
-      {/* legenda / estado em foco */}
-      <div className="mt-2 flex items-center justify-between px-1">
-        <div className="text-[13px]" style={{ color: C.sobreFundo, fontFamily: F.mono }}>
-          {infoAtivo ? (
-            <span style={{ color: C.ink, fontWeight: 600 }}>
-              {infoAtivo.nome} · {nAtivo} {nAtivo === 1 ? "especialista" : "especialistas"}
-            </span>
-          ) : (
-            <span>passe o dedo pelo mapa e toque num estado</span>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px]" style={{ color: C.sobreFundo, fontFamily: F.mono }}>
+          {/* siglas só onde cabe (estados grandes) */}
+          {Object.keys(MAPA)
+            .filter((uf) => !MAPA[uf].p)
+            .map((uf) => (
+              <text
+                key={uf}
+                x={MAPA[uf].c[0]}
+                y={MAPA[uf].c[1] + 7}
+                textAnchor="middle"
+                pointerEvents="none"
+                style={{
+                  fontFamily: F.mono,
+                  fontVariantNumeric: "tabular-nums",
+                  fontSize: 24,
+                  fontWeight: 700,
+                  fill: corRotulo(),
+                }}
+              >
+                {uf}
+              </text>
+            ))}
+
+          {/* estados pequenos: alvo de toque maior + sigla puxada para fora */}
+          {Object.keys(MAPA)
+            .filter((uf) => MAPA[uf].p)
+            .map((uf) => {
+              const [cx, cy] = MAPA[uf].c;
+              const nome = ESTADO_POR_UF[uf]?.nome || uf;
+              const n = contagem[uf] || 0;
+              return (
+                <g key={uf}>
+                  <line x1={cx} y1={cy} x2={cx + 78} y2={cy} stroke="#D8D2CB" strokeWidth="2" />
+                  <circle cx={cx + 100} cy={cy} r="26" fill={preenchimento(uf)} stroke="#fff" strokeWidth="2.5" />
+                  <text
+                    x={cx + 100}
+                    y={cy + 7}
+                    textAnchor="middle"
+                    pointerEvents="none"
+                    style={{
+                      fontFamily: F.mono,
+                      fontVariantNumeric: "tabular-nums",
+                      fontSize: 20,
+                      fontWeight: 700,
+                      fill: corRotulo(),
+                    }}
+                  >
+                    {uf}
+                  </text>
+                  <circle
+                    cx={cx + 100}
+                    cy={cy}
+                    r="30"
+                    fill="transparent"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => escolher(uf)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${nome}, ${n} profissionais`}
+                    onKeyDown={(ev) => {
+                      if (ev.key === "Enter" || ev.key === " ") {
+                        ev.preventDefault();
+                        escolher(uf);
+                      }
+                    }}
+                  />
+                </g>
+              );
+            })}
+        </svg>
+
+        {/* legenda */}
+        <div className="flex items-center gap-2 px-1 pt-2">
+          <span className="text-[11px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
             menos
           </span>
-          <span style={{ width: 14, height: 10, borderRadius: 2, background: "#FFB877" }} />
-          <span style={{ width: 14, height: 10, borderRadius: 2, background: C.laranja }} />
-          <span style={{ width: 14, height: 10, borderRadius: 2, background: C.ink }} />
-          <span className="text-[11px]" style={{ color: C.sobreFundo, fontFamily: F.mono }}>
-            mais
+          <span className="h-2 flex-1 rounded-full" style={{ background: `linear-gradient(to right, #FFE2C7, ${C.laranja})` }} />
+          <span className="text-[11px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
+            mais profissionais
           </span>
         </div>
       </div>
+
+      <p className="pt-3 text-center text-[12px] uppercase" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums", letterSpacing: ".12em" }}>
+        Toque em um estado
+      </p>
     </div>
   );
 }

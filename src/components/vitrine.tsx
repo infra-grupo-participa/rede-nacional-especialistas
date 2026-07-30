@@ -117,11 +117,9 @@ export function Vitrine({
 
       {aba === "profissionais" ? (
         <>
-          {/* mapa */}
-          <div className="mx-auto max-w-2xl px-5 pt-5">
-            <div className="rounded-3xl p-4" style={{ background: C.surface, border: `1px solid ${C.line}` }}>
-              <MapaBrasil contagem={contagem} onEstado={(uf) => setUfSheet(uf)} />
-            </div>
+          {/* mapa (o próprio componente traz o cartão + legenda, igual ao MVP) */}
+          <div className="mx-auto max-w-2xl pt-3">
+            <MapaBrasil contagem={contagem} onEstado={(uf) => setUfSheet(uf)} />
           </div>
 
           {/* níveis */}
