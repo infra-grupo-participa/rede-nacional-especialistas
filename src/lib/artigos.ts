@@ -142,6 +142,17 @@ export async function meuArtigo(id: string): Promise<Artigo | null> {
   return (data as unknown as Artigo | null) ?? null;
 }
 
+/** Um artigo com autor, em qualquer status (revisão da coordenação). */
+export async function artigoParaRevisao(id: string): Promise<ArtigoComAutor | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("artigos")
+    .select(`${CAMPOS_ARTIGO}, autor:autor_id (${CAMPOS_AUTOR_ARTIGO})`)
+    .eq("id", id)
+    .maybeSingle();
+  return (data as unknown as ArtigoComAutor | null) ?? null;
+}
+
 /** Fila da coordenação: artigos por status (em_analise/ajustes = mais antigos primeiro). */
 export async function filaCoordenacao(
   status: StatusArtigo,
