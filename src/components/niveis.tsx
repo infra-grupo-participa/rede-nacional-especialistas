@@ -50,7 +50,7 @@ export function SeloNivel({
   const grande = tamanho === "lg";
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full align-middle"
+      className="inline-flex items-center gap-1.5 rounded-md align-middle"
       style={{
         background: C.paper,
         border: `1px solid ${C.line}`,
@@ -62,6 +62,7 @@ export function SeloNivel({
       <span
         style={{
           fontFamily: F.mono,
+          fontVariantNumeric: "tabular-nums",
           fontWeight: 600,
           fontSize: grande ? 12 : 11,
           color: C.ink,

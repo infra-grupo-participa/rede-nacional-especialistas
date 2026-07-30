@@ -73,6 +73,7 @@ export function Avatar({
         background: bg,
         color: fg,
         fontFamily: F.serif,
+        fontWeight: 600,
         fontSize: size * 0.38,
         letterSpacing: "0.01em",
       }}
@@ -229,7 +230,8 @@ export function Botao({
 }
 
 /* ------------------------------------------------------------ Segmentado -- */
-/* Toggle em pílula com contagem — usado na home (Profissionais / Artigos). */
+/* Toggle em pílula — cópia fiel do MVP: flex largura-total, abas flex-1, aba
+   ativa em laranja sólido (letra preta), contagem em mono com opacity. */
 export function Segmentado({
   abas,
   ativa,
@@ -240,34 +242,21 @@ export function Segmentado({
   onTrocar: (id: string) => void;
 }) {
   return (
-    <div
-      className="inline-flex rounded-full p-1"
-      style={{ background: C.paper, border: BORDA, height: 40 }}
-    >
+    <div className="flex rounded-full p-1" style={{ background: C.paper, border: BORDA }} role="tablist">
       {abas.map((a) => {
         const on = a.id === ativa;
         return (
           <button
             key={a.id}
+            role="tab"
+            aria-selected={on}
             onClick={() => onTrocar(a.id)}
-            className="rounded-full px-4 text-[13px] font-semibold transition-colors"
-            style={{
-              background: on ? C.surface : "transparent",
-              color: C.ink,
-              border: on ? BORDA : "1px solid transparent",
-            }}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full text-[14px] font-semibold transition-colors"
+            style={{ height: 40, background: on ? C.laranja : "transparent", color: C.ink }}
           >
             {a.rotulo}
             {typeof a.n === "number" && (
-              <span
-                className="ml-1.5"
-                style={{
-                  color: C.muted,
-                  fontFamily: F.mono,
-                  fontVariantNumeric: "tabular-nums",
-                  fontSize: 12,
-                }}
-              >
+              <span style={{ fontFamily: F.mono, fontVariantNumeric: "tabular-nums", fontSize: 12, opacity: on ? 0.75 : 0.5 }}>
                 {a.n}
               </span>
             )}

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Perfil } from "@/lib/types";
 
 const CAMPOS_CARD =
-  "id, slug, nome, profissao, cidade, uf, whatsapp, avatar_url, qualificacao, bio";
+  "id, slug, nome, profissao, cidade, uf, whatsapp, avatar_url, qualificacao, bio, certificado";
 
 export type PerfilCard = Pick<
   Perfil,
@@ -16,6 +16,7 @@ export type PerfilCard = Pick<
   | "avatar_url"
   | "qualificacao"
   | "bio"
+  | "certificado"
 >;
 
 /** Contagem de especialistas aprovados por UF. */

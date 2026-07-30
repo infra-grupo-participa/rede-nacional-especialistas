@@ -9,11 +9,13 @@ import { Capa2 } from "@/components/artigo/capa";
 
 /* ------------------------------------------------------------------ Chapeu -- */
 export function Chapeu({ children }: { children: React.ReactNode }) {
+  if (!children) return null;
   return (
     <span
-      className="uppercase"
+      className="block uppercase"
       style={{
         fontFamily: F.mono,
+        fontVariantNumeric: "tabular-nums",
         fontSize: 11,
         fontWeight: 700,
         letterSpacing: ".12em",
@@ -77,8 +79,8 @@ export function BlocosLidos({ blocos }: { blocos: Bloco[] }) {
           return (
             <h2
               key={b.id}
-              className="mt-7 text-[20px]"
-              style={{ fontFamily: F.serif, fontWeight: 600, color: C.ink }}
+              className="mt-7 text-[20px] leading-snug"
+              style={{ fontFamily: F.serif, fontWeight: 600, color: C.ink, letterSpacing: "-0.018em" }}
             >
               {texto}
             </h2>
@@ -89,7 +91,13 @@ export function BlocosLidos({ blocos }: { blocos: Bloco[] }) {
             <blockquote
               key={b.id}
               className="mt-6 pl-4 text-[17px] leading-relaxed"
-              style={{ borderLeft: `3px solid ${C.petrol}`, color: C.petrolDeep }}
+              style={{
+                borderLeft: `3px solid ${C.petrol}`,
+                color: C.petrolDeep,
+                fontFamily: F.serif,
+                fontWeight: 500,
+                letterSpacing: "-0.011em",
+              }}
             >
               {texto}
             </blockquote>
