@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Node App na Hostinger: build standalone para servir com `node server.js`.
-  output: "standalone",
+  // Node App na Hostinger (Passenger): o entrypoint é o server.js, que sobe o
+  // Next em produção. Mesmo padrão do gps-thb — sem output standalone, que
+  // conflita com o server.js custom (Next avisa e ignora o next start).
   // Há outro lockfile em C:\tmp; fixamos a raiz neste projeto.
   turbopack: { root: __dirname },
   images: {
