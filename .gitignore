@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# .env.production só contém chaves PÚBLICAS (NEXT_PUBLIC_*) — versionado de
+# propósito p/ o build da Hostinger inlinar. Segredos NUNCA aqui (só no painel).
+!.env.production
 
 # vercel
 .vercel
