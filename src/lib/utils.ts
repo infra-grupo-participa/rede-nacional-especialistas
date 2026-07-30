@@ -60,10 +60,23 @@ export function tempoRelativo(iso: string): string {
   return dataPonto(iso);
 }
 
+/** Normaliza um telefone BR para E.164 sem "+", garantindo DDI 55 sem duplicar.
+ *  A base real (telefone_e164) às vezes já traz o 55; os fixtures do MVP não. */
+export function foneWhatsapp(whatsapp: string): string {
+  let d = (whatsapp || "").replace(/\D/g, "");
+  // já em formato internacional BR (55 + DDD 2díg + 8-9 díg = 12-13 díg): usa como está.
+  if (d.startsWith("55") && (d.length === 12 || d.length === 13)) return d;
+  // número local (DDD + 8-9 díg = 10-11 díg): prefixa o DDI.
+  if (d.length === 10 || d.length === 11) return "55" + d;
+  // fallback: se sobrou um 55 duplicado (ex.: 5555...), colapsa um.
+  if (d.startsWith("5555")) d = d.slice(2);
+  return d.startsWith("55") ? d : "55" + d;
+}
+
 export function waLink(whatsapp: string, nome: string): string {
   const primeiro = nome.split(" ")[0];
   const texto = `Olá, ${primeiro}! Encontrei seu perfil na Rede Nacional de Especialistas e gostaria de conversar.`;
-  return `https://wa.me/55${(whatsapp || "").replace(/\D/g, "")}?text=${encodeURIComponent(texto)}`;
+  return `https://wa.me/${foneWhatsapp(whatsapp)}?text=${encodeURIComponent(texto)}`;
 }
 
 export function tintaAvatar(nome: string): [string, string] {
