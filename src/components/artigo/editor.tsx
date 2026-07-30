@@ -8,7 +8,7 @@ import { Ico } from "@/components/icons";
 import { Capa, Chapeu, BlocosLidos } from "@/components/artigo/atoms-artigo";
 import { CampoImagem } from "@/components/artigo/campo-imagem";
 import { salvarRascunho, enviarArtigo } from "@/app/artigos/actions";
-import { tempoLeitura, type Artigo, type Bloco } from "@/lib/artigos";
+import { tempoLeitura, type Artigo, type Bloco } from "@/lib/artigos-tipos";
 
 const TIPOS_BLOCO: { tipo: Bloco["tipo"]; rotulo: string }[] = [
   { tipo: "h2", rotulo: "Subtítulo" },

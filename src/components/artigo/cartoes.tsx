@@ -3,7 +3,7 @@ import { C, F } from "@/lib/tokens";
 import { Avatar } from "@/components/atoms";
 import { Eyebrow } from "@/components/atoms";
 import { dataPonto } from "@/lib/utils";
-import { chapeuDe, tempoLeitura, type ArtigoComAutor } from "@/lib/artigos";
+import { chapeuDe, tempoLeitura, type ArtigoComAutor } from "@/lib/artigos-tipos";
 import { Capa, Chapeu } from "@/components/artigo/atoms-artigo";
 
 /* Cartões de listagem de artigos, portados do MVP (App.jsx §5.5). Cada um é um

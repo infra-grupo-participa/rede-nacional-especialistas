@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { C } from "@/lib/tokens";
 import { Chip } from "@/components/atoms";
 import { norm } from "@/lib/utils";
-import type { ArtigoComAutor } from "@/lib/artigos";
+import type { ArtigoComAutor } from "@/lib/artigos-tipos";
 import { CartaoDestaque, LinhaEditorial, BlocoMaisLidos } from "@/components/artigo/cartoes";
 
 /* Painel de artigos (mobile / coluna única). Editorias derivadas da profissão do

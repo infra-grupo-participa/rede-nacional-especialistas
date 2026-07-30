@@ -6,7 +6,7 @@ import { C, F } from "@/lib/tokens";
 import { Avatar } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { norm, dataPonto } from "@/lib/utils";
-import type { ArtigoComAutor, StatusArtigo } from "@/lib/artigos";
+import type { ArtigoComAutor, StatusArtigo } from "@/lib/artigos-tipos";
 
 /* Fila da coordenação: abas (em análise / ajustes / publicados), busca e
    contadores. FIFO nas filas de trabalho; publicados = mais recentes primeiro. */

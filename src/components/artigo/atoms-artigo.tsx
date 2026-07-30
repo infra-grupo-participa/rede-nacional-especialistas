@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { C, F } from "@/lib/tokens";
 import { tintaCapa } from "@/lib/utils";
-import { STATUS_META, type Bloco, type StatusArtigo } from "@/lib/artigos";
+import { STATUS_META, type Bloco, type StatusArtigo } from "@/lib/artigos-tipos";
 import { Capa2 } from "@/components/artigo/capa";
 
 /* Building-blocks visuais dos artigos, portados do MVP (App.jsx). Componentes

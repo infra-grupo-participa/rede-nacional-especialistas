@@ -16,7 +16,7 @@ import { PainelArtigos } from "@/components/artigo/painel-artigos";
 import { Rodape } from "@/components/rodape";
 import { ESTADOS, REGIOES, type Regiao } from "@/lib/estados";
 import type { Facetas } from "@/lib/queries";
-import type { ArtigoComAutor } from "@/lib/artigos";
+import type { ArtigoComAutor } from "@/lib/artigos-tipos";
 
 export interface SessaoInfo {
   nome: string | null;
