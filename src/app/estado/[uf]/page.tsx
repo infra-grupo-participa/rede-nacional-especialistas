@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ESTADO_POR_UF } from "@/lib/estados";
 import { membrosPorUf } from "@/lib/queries";
+import { norm } from "@/lib/utils";
 import { C, F } from "@/lib/tokens";
 import { Ico } from "@/components/icons";
 import { Placa } from "@/components/atoms";
@@ -11,15 +12,21 @@ export const dynamic = "force-dynamic";
 
 export default async function EstadoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ uf: string }>;
+  searchParams: Promise<{ prof?: string }>;
 }) {
   const { uf: ufParam } = await params;
+  const { prof } = await searchParams;
   const uf = ufParam.toUpperCase();
   const estado = ESTADO_POR_UF[uf];
   if (!estado) notFound();
 
-  const membros = await membrosPorUf(uf);
+  const todos = await membrosPorUf(uf);
+  const membros = prof
+    ? todos.filter((m) => norm(m.profissao) === norm(prof))
+    : todos;
 
   return (
     <main style={{ minHeight: "100dvh", background: C.fundo, color: C.ink }}>
@@ -52,6 +59,16 @@ export default async function EstadoPage({
       </div>
 
       <div className="mx-auto max-w-2xl px-4 py-4">
+        {prof && (
+          <div className="mb-3 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold" style={{ background: C.laranja, color: C.ink }}>
+              {prof}
+              <Link href={`/estado/${uf}`} aria-label="Limpar filtro" style={{ display: "inline-flex" }}>
+                <Ico.x style={{ width: 13, height: 13 }} />
+              </Link>
+            </span>
+          </div>
+        )}
         {membros.length === 0 ? (
           <div className="rounded-2xl px-5 py-14 text-center" style={{ background: C.surface }}>
             <p className="text-[16px]" style={{ color: C.ink, fontFamily: F.serif }}>

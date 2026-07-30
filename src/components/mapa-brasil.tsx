@@ -31,12 +31,20 @@ function tinta(n: number, max: number): { fill: string; stroke: string } {
 
 export function MapaBrasil({
   contagem,
+  onEstado,
 }: {
   contagem: Record<string, number>;
+  /** Se fornecido, o clique chama isto em vez de navegar direto para /estado/[uf]. */
+  onEstado?: (uf: string) => void;
 }) {
   const router = useRouter();
   const [hover, setHover] = useState<string | null>(null);
   const max = Math.max(1, ...Object.values(contagem));
+
+  const abrir = (uf: string) => {
+    if (onEstado) onEstado(uf);
+    else router.push(`/estado/${uf}`);
+  };
 
   const ativo = hover;
   const infoAtivo = ativo ? ESTADO_POR_UF[ativo] : null;
@@ -73,11 +81,11 @@ export function MapaBrasil({
               onMouseLeave={() => setHover((h) => (h === uf ? null : h))}
               onFocus={() => setHover(uf)}
               onBlur={() => setHover((h) => (h === uf ? null : h))}
-              onClick={() => router.push(`/estado/${uf}`)}
+              onClick={() => abrir(uf)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  router.push(`/estado/${uf}`);
+                  abrir(uf);
                 }
               }}
             />

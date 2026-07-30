@@ -1,11 +1,17 @@
-import { contagemPorUf } from "@/lib/queries";
+import { contagemPorUf, facetasBusca } from "@/lib/queries";
+import { listarPublicados } from "@/lib/artigos";
 import { getPerfilAtual } from "@/lib/auth";
 import { Vitrine, type SessaoInfo } from "@/components/vitrine";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [contagem, perfil] = await Promise.all([contagemPorUf(), getPerfilAtual()]);
+  const [contagem, facetas, artigos, perfil] = await Promise.all([
+    contagemPorUf(),
+    facetasBusca(),
+    listarPublicados(24),
+    getPerfilAtual(),
+  ]);
 
   const sessao: SessaoInfo = {
     nome: perfil?.nome ?? null,
@@ -14,5 +20,5 @@ export default async function Home() {
     aprovado: perfil?.status === "aprovado",
   };
 
-  return <Vitrine contagem={contagem} sessao={sessao} />;
+  return <Vitrine contagem={contagem} facetas={facetas} artigos={artigos} sessao={sessao} />;
 }
