@@ -2,12 +2,12 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
-import { C, F } from "@/lib/tokens";
+import { C, F, BORDA } from "@/lib/tokens";
 import { iniciais, tintaAvatar } from "@/lib/utils";
 import { nivelDe, type Qualificacao } from "@/lib/qualificacoes";
 
 /* ---------------------------------------------------------------- Placa -- */
-/* A "placa": sigla do estado em monoespaçada. Substitui o mapa no mobile. */
+/* A "placa": sigla do estado em tabular. É o elemento que substitui o mapa. */
 export function Placa({
   uf,
   tom = "claro",
@@ -22,11 +22,17 @@ export function Placa({
   const cor =
     tom === "escuro"
       ? { background: C.ink, color: "#fff" }
-      : { background: C.laranja, color: C.ink };
+      : { background: C.petrolSoft, color: C.petrolDeep };
   return (
     <span
       className="inline-flex items-center justify-center rounded-lg font-semibold shrink-0"
-      style={{ ...dims, ...cor, fontFamily: F.mono, letterSpacing: "0.02em" }}
+      style={{
+        ...dims,
+        ...cor,
+        fontFamily: F.mono,
+        fontVariantNumeric: "tabular-nums",
+        letterSpacing: "0.02em",
+      }}
     >
       {uf}
     </span>
@@ -142,6 +148,7 @@ export function Eyebrow({
       className={`uppercase ${className}`}
       style={{
         fontFamily: F.mono,
+        fontVariantNumeric: "tabular-nums",
         fontSize: 11,
         letterSpacing: "0.14em",
         color: sobreFundo ? C.sobreFundo : C.muted,
@@ -191,9 +198,9 @@ export function Chip({
       className="shrink-0 rounded-full px-3.5 text-sm transition-colors"
       style={{
         height: 36,
-        background: ativo ? C.petrol : C.surface,
-        color: ativo ? "#fff" : C.ink,
-        border: `1px solid ${ativo ? C.petrol : C.line}`,
+        background: ativo ? C.laranja : C.surface,
+        color: C.ink,
+        border: `1px solid ${ativo ? C.laranja : C.line}`,
       }}
     >
       {children}
@@ -224,10 +231,11 @@ export function Botao({
   const base =
     "inline-flex items-center justify-center gap-2 rounded-xl text-[15px] font-semibold transition-opacity";
   const estilos: Record<string, CSSProperties> = {
-    primario: { background: C.petrol, color: "#fff" },
-    whats: { background: C.whats, color: "#fff" },
-    secundario: { background: C.surface, color: C.ink, border: `1px solid ${C.line}` },
-    fantasma: { background: "transparent", color: C.petrol },
+    // sobre laranja a letra é sempre preta (contraste); whats/contato é preto.
+    primario: { background: C.laranja, color: C.ink },
+    whats: { background: C.ink, color: "#fff" },
+    secundario: { background: C.surface, color: C.ink, border: BORDA },
+    fantasma: { background: "transparent", color: C.ink },
   };
   const style: CSSProperties = {
     ...estilos[variante],
@@ -251,5 +259,69 @@ export function Botao({
       {icone}
       {children}
     </button>
+  );
+}
+
+/* ------------------------------------------------------------ Segmentado -- */
+/* Toggle em pílula com contagem — usado na home (Profissionais / Artigos). */
+export function Segmentado({
+  abas,
+  ativa,
+  onTrocar,
+}: {
+  abas: { id: string; rotulo: string; n?: number }[];
+  ativa: string;
+  onTrocar: (id: string) => void;
+}) {
+  return (
+    <div
+      className="inline-flex rounded-full p-1"
+      style={{ background: C.paper, border: BORDA, height: 40 }}
+    >
+      {abas.map((a) => {
+        const on = a.id === ativa;
+        return (
+          <button
+            key={a.id}
+            onClick={() => onTrocar(a.id)}
+            className="rounded-full px-4 text-[13px] font-semibold transition-colors"
+            style={{
+              background: on ? C.surface : "transparent",
+              color: C.ink,
+              border: on ? BORDA : "1px solid transparent",
+            }}
+          >
+            {a.rotulo}
+            {typeof a.n === "number" && (
+              <span
+                className="ml-1.5"
+                style={{
+                  color: C.muted,
+                  fontFamily: F.mono,
+                  fontVariantNumeric: "tabular-nums",
+                  fontSize: 12,
+                }}
+              >
+                {a.n}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------- Toast -- */
+export function Toast({ msg }: { msg: string | null }) {
+  if (!msg) return null;
+  return (
+    <div
+      className="fixed left-1/2 z-50 rounded-xl px-4 py-3 text-sm text-white"
+      style={{ bottom: 96, transform: "translateX(-50%)", background: C.ink, maxWidth: 320 }}
+      role="status"
+    >
+      {msg}
+    </div>
   );
 }
