@@ -5,7 +5,7 @@ import Link from "next/link";
 import { C, F } from "@/lib/tokens";
 import { Ico } from "@/components/icons";
 import { Botao } from "@/components/atoms";
-import { entrar, cadastrar, type AuthState } from "./actions";
+import { entrar, cadastrar, recuperarSenha, type AuthState } from "./actions";
 
 function CampoSenha({
   name,
@@ -53,11 +53,12 @@ function CampoSenha({
 }
 
 export function FormAcesso() {
-  const [modo, setModo] = useState<"entrar" | "cadastrar">("entrar");
-  const acao = modo === "entrar" ? entrar : cadastrar;
+  const [modo, setModo] = useState<"entrar" | "cadastrar" | "recuperar">("entrar");
+  const acao = modo === "entrar" ? entrar : modo === "cadastrar" ? cadastrar : recuperarSenha;
   const [estado, formAction, pending] = useActionState<AuthState, FormData>(acao, {});
 
   const entrando = modo === "entrar";
+  const recuperando = modo === "recuperar";
 
   return (
     <main
@@ -73,7 +74,7 @@ export function FormAcesso() {
             Rede Nacional de Especialistas
           </p>
           <h1 className="mt-2 text-[28px] leading-tight" style={{ fontFamily: F.serif }}>
-            {entrando ? "Entrar na comunidade" : "Criar minha conta"}
+            {entrando ? "Entrar na comunidade" : recuperando ? "Recuperar acesso" : "Criar minha conta"}
           </h1>
         </div>
 
@@ -114,13 +115,25 @@ export function FormAcesso() {
               />
             </label>
 
-            <CampoSenha
-              name="senha"
-              rotulo="Senha"
-              placeholder={entrando ? "sua senha" : "mínimo de 6 caracteres"}
-            />
-            {!entrando && (
+            {!recuperando && (
+              <CampoSenha
+                name="senha"
+                rotulo="Senha"
+                placeholder={entrando ? "sua senha" : "mínimo de 6 caracteres"}
+              />
+            )}
+            {modo === "cadastrar" && (
               <CampoSenha name="senha2" rotulo="Repita a senha" placeholder="digite de novo" />
+            )}
+            {entrando && (
+              <button
+                type="button"
+                onClick={() => setModo("recuperar")}
+                className="mt-3 text-[13px] font-semibold"
+                style={{ color: C.petrol }}
+              >
+                Esqueci minha senha
+              </button>
             )}
 
             {estado.erro && (
@@ -146,18 +159,29 @@ export function FormAcesso() {
                   ? "Aguarde…"
                   : entrando
                     ? "Entrar"
-                    : "Criar conta e continuar"}
+                    : recuperando
+                      ? "Enviar link de recuperação"
+                      : "Criar conta e continuar"}
               </Botao>
             </div>
           </form>
 
           <button
-            onClick={() => setModo(entrando ? "cadastrar" : "entrar")}
+            onClick={() => setModo(entrando || recuperando ? "cadastrar" : "entrar")}
             className="mt-4 w-full text-center text-[14px] font-semibold"
             style={{ color: C.petrol }}
           >
-            {entrando ? "Não tenho conta — cadastrar-me" : "Já tenho conta — entrar"}
+            {entrando || recuperando ? "Não tenho conta — cadastrar-me" : "Já tenho conta — entrar"}
           </button>
+          {recuperando && (
+            <button
+              onClick={() => setModo("entrar")}
+              className="mt-2 w-full text-center text-[13px]"
+              style={{ color: C.muted }}
+            >
+              ← Voltar para entrar
+            </button>
+          )}
         </div>
 
         <p className="mt-5 text-center text-[13px]" style={{ color: C.sobreFundo }}>

@@ -88,6 +88,25 @@ export async function cadastrar(
   };
 }
 
+export async function recuperarSenha(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  if (!emailValido(email)) return { erro: "Digite um e-mail válido." };
+
+  const supabase = await createClient();
+  // O e-mail sai pela Edge Function rede-auth-email (Resend). Não revelamos se o
+  // e-mail existe — resposta é sempre a mesma.
+  await supabase.auth.resetPasswordForEmail(email);
+
+  return {
+    ok: true,
+    mensagem:
+      "Se houver uma conta com esse e-mail, enviamos um link para redefinir a senha. Confira sua caixa de entrada.",
+  };
+}
+
 export async function sair() {
   const supabase = await createClient();
   await supabase.auth.signOut();
