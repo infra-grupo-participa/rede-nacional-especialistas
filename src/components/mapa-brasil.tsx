@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { C, F, BORDA } from "@/lib/tokens";
 import { MAPA, MAPA_VB } from "@/lib/mapa-brasil";
 import { ESTADO_POR_UF } from "@/lib/estados";
 
-/* MapaBrasil — cópia FIEL do App.jsx (MVP). viewBox 1000x1031, siglas nos estados
-   grandes, estados pequenos (p:true) com linha puxada + balão, coropletia laranja
-   por densidade. Um toque seleciona e abre a folha do estado (onAbrir). */
+/* MapaBrasil — base fiel ao MVP (viewBox 1000x1031, siglas, estados pequenos
+   puxados, coropletia laranja) + camada de interatividade (Framer Motion):
+   entrada com fade/escala, hover que acende o estado + tooltip, pulso no estado
+   mais quente, e um leve zoom/foco ao clicar antes de abrir a folha. */
 
 function misturar(de: string, para: string, t: number): string {
   const h = (c: string): [number, number, number] => [
@@ -29,23 +31,78 @@ export function MapaBrasil({
   onEstado?: (uf: string) => void;
 }) {
   const [vb0, vb1] = MAPA_VB;
-  const max = useMemo(
-    () => Math.max(1, ...Object.values(contagem)),
-    [contagem],
-  );
+  const [hover, setHover] = useState<string | null>(null);
+  const [focado, setFocado] = useState<string | null>(null);
 
-  const preenchimento = (uf: string) => {
+  const max = useMemo(() => Math.max(1, ...Object.values(contagem)), [contagem]);
+  const ufMaisQuente = useMemo(() => {
+    let melhor: string | null = null;
+    let n = 0;
+    for (const [uf, v] of Object.entries(contagem)) if (v > n) { n = v; melhor = uf; }
+    return melhor;
+  }, [contagem]);
+
+  const corBase = (uf: string) => {
     const n = contagem[uf] || 0;
     if (n === 0) return "#EDE7E1";
     return misturar("#FFE2C7", C.laranja, 0.2 + 0.8 * Math.sqrt(n / max));
   };
-  const corRotulo = () => C.ink;
+  // No hover/foco o estado escurece um passo (fica mais intenso), sem virar preto
+  // chapado — mantém a leitura de coropletia e ganha um anel laranja (stroke).
+  const preenchimento = (uf: string) => {
+    const n = contagem[uf] || 0;
+    if (uf === hover || uf === focado) {
+      if (n === 0) return "#DCD3C9";
+      return misturar(C.laranja, C.ink, 0.35); // laranja profundo
+    }
+    return corBase(uf);
+  };
+  const corRotulo = (uf: string) => (uf === hover || uf === focado ? "#fff" : C.ink);
 
-  const escolher = (uf: string) => onEstado?.(uf);
+  const escolher = (uf: string) => {
+    // leve foco/zoom antes de abrir a folha (a folha abre logo em seguida)
+    setFocado(uf);
+    onEstado?.(uf);
+    setTimeout(() => setFocado(null), 320);
+  };
+
+  const nomeHover = hover ? ESTADO_POR_UF[hover]?.nome ?? hover : null;
+  const nHover = hover ? contagem[hover] || 0 : 0;
 
   return (
     <div className="px-4 pb-10">
-      <div className="rounded-2xl p-3" style={{ background: C.surface, border: BORDA }}>
+      <motion.div
+        className="relative rounded-2xl p-3"
+        style={{ background: C.surface, border: BORDA }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 0.61, 0.36, 1] }}
+      >
+        {/* tooltip flutuante do estado em hover */}
+        <div
+          className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2"
+          style={{
+            opacity: hover ? 1 : 0,
+            transform: `translateX(-50%) translateY(${hover ? 0 : -6}px)`,
+            transition: "opacity .16s, transform .16s",
+          }}
+        >
+          {hover && (
+            <div
+              className="flex items-center gap-2 rounded-full px-3.5 py-1.5"
+              style={{ background: C.ink, color: "#fff", boxShadow: "0 8px 24px rgba(17,17,17,.24)" }}
+            >
+              <span className="text-[13px] font-semibold">{nomeHover}</span>
+              <span
+                className="rounded-full px-1.5 text-[11px]"
+                style={{ background: C.laranja, color: C.ink, fontFamily: F.mono, fontVariantNumeric: "tabular-nums", fontWeight: 700 }}
+              >
+                {nHover}
+              </span>
+            </div>
+          )}
+        </div>
+
         <svg
           viewBox={`0 0 ${vb0} ${vb1}`}
           width="100%"
@@ -53,23 +110,47 @@ export function MapaBrasil({
           aria-label="Mapa do Brasil por estado"
           style={{ display: "block", touchAction: "manipulation" }}
         >
-          {Object.keys(MAPA).map((uf) => {
+          {/* pulso no estado mais quente: um eco do path que respira por trás */}
+          {ufMaisQuente && !hover && !focado && (
+            <motion.path
+              d={MAPA[ufMaisQuente].d}
+              fill={C.laranja}
+              stroke="none"
+              pointerEvents="none"
+              style={{ transformOrigin: "center", transformBox: "fill-box" }}
+              initial={{ opacity: 0.35, scale: 1 }}
+              animate={{ opacity: [0.35, 0, 0.35], scale: [1, 1.06, 1] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          )}
+
+          {Object.keys(MAPA).map((uf, i) => {
             const n = contagem[uf] || 0;
             const vazio = n === 0;
             const nome = ESTADO_POR_UF[uf]?.nome || uf;
+            const ativo = uf === hover || uf === focado;
             return (
-              <path
+              <motion.path
                 key={uf}
                 d={MAPA[uf].d}
                 fill={preenchimento(uf)}
-                stroke="#fff"
-                strokeWidth="2.5"
+                stroke={ativo ? C.laranja : "#fff"}
+                strokeWidth={ativo ? 4 : 2.5}
                 strokeLinejoin="round"
-                onClick={() => escolher(uf)}
-                style={{ cursor: vazio ? "default" : "pointer" }}
+                style={{ cursor: vazio ? "default" : "pointer", transition: "fill .18s, stroke-width .12s, stroke .12s" }}
                 role="button"
                 tabIndex={0}
                 aria-label={`${nome}, ${n} profissionais`}
+                // entrada: cada estado surge escalonado (só opacidade — sem scale,
+                // que distorceria o path SVG a partir da origem do viewBox)
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.12 + i * 0.01, duration: 0.28 }}
+                onMouseEnter={() => setHover(uf)}
+                onMouseLeave={() => setHover((h) => (h === uf ? null : h))}
+                onFocus={() => setHover(uf)}
+                onBlur={() => setHover((h) => (h === uf ? null : h))}
+                onClick={() => escolher(uf)}
                 onKeyDown={(ev) => {
                   if (ev.key === "Enter" || ev.key === " ") {
                     ev.preventDefault();
@@ -80,7 +161,7 @@ export function MapaBrasil({
             );
           })}
 
-          {/* siglas só onde cabe (estados grandes) */}
+          {/* siglas nos estados grandes */}
           {Object.keys(MAPA)
             .filter((uf) => !MAPA[uf].p)
             .map((uf) => (
@@ -95,14 +176,15 @@ export function MapaBrasil({
                   fontVariantNumeric: "tabular-nums",
                   fontSize: 24,
                   fontWeight: 700,
-                  fill: corRotulo(),
+                  fill: corRotulo(uf),
+                  transition: "fill .18s",
                 }}
               >
                 {uf}
               </text>
             ))}
 
-          {/* estados pequenos: alvo de toque maior + sigla puxada para fora */}
+          {/* estados pequenos: alvo maior + sigla puxada para fora */}
           {Object.keys(MAPA)
             .filter((uf) => MAPA[uf].p)
             .map((uf) => {
@@ -112,19 +194,13 @@ export function MapaBrasil({
               return (
                 <g key={uf}>
                   <line x1={cx} y1={cy} x2={cx + 78} y2={cy} stroke="#D8D2CB" strokeWidth="2" />
-                  <circle cx={cx + 100} cy={cy} r="26" fill={preenchimento(uf)} stroke="#fff" strokeWidth="2.5" />
+                  <circle cx={cx + 100} cy={cy} r="26" fill={preenchimento(uf)} stroke="#fff" strokeWidth="2.5" style={{ transition: "fill .18s" }} />
                   <text
                     x={cx + 100}
                     y={cy + 7}
                     textAnchor="middle"
                     pointerEvents="none"
-                    style={{
-                      fontFamily: F.mono,
-                      fontVariantNumeric: "tabular-nums",
-                      fontSize: 20,
-                      fontWeight: 700,
-                      fill: corRotulo(),
-                    }}
+                    style={{ fontFamily: F.mono, fontVariantNumeric: "tabular-nums", fontSize: 20, fontWeight: 700, fill: corRotulo(uf), transition: "fill .18s" }}
                   >
                     {uf}
                   </text>
@@ -135,6 +211,8 @@ export function MapaBrasil({
                     fill="transparent"
                     style={{ cursor: "pointer" }}
                     onClick={() => escolher(uf)}
+                    onMouseEnter={() => setHover(uf)}
+                    onMouseLeave={() => setHover((h) => (h === uf ? null : h))}
                     role="button"
                     tabIndex={0}
                     aria-label={`${nome}, ${n} profissionais`}
@@ -160,7 +238,7 @@ export function MapaBrasil({
             mais profissionais
           </span>
         </div>
-      </div>
+      </motion.div>
 
       <p className="pt-3 text-center text-[12px] uppercase" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums", letterSpacing: ".12em" }}>
         Toque em um estado
