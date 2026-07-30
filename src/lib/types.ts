@@ -22,6 +22,12 @@ export interface Perfil {
   qualificacao: Qualificacao;
   papel: Papel;
   status: StatusPerfil;
+  /** Espaço de Instrução (design novo). */
+  espaco: string;
+  /** certificado pelo Espaço de Instrução. */
+  certificado: boolean;
+  /** telefone separado do whatsapp. */
+  telefone: string;
   xp: number;
   nivel_gam: number;
   /** true = veio do espelho da base THB (vw_aluno_360). */

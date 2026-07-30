@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { perfilPorSlug } from "@/lib/queries";
-import { nomeEstado } from "@/lib/estados";
+import { artigosDoAutor } from "@/lib/artigos";
 import { C, F } from "@/lib/tokens";
 import { Avatar, Botao, Placa, Tag, TagNivel, Eyebrow } from "@/components/atoms";
 import { Ico } from "@/components/icons";
+import { LinhaEditorial } from "@/components/artigo/cartoes";
+import { DockWhatsapp } from "@/components/perfil/dock-whatsapp";
 import { fone, mesAno, waLink } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +62,8 @@ export default async function EspecialistaPage({
   const { slug } = await params;
   const m = await perfilPorSlug(slug);
   if (!m) notFound();
+  const artigos = await artigosDoAutor(m.id);
+  const primeiroNome = m.nome.split(" ")[0];
 
   return (
     <main style={{ minHeight: "100dvh", background: C.fundo, color: C.ink }}>
@@ -119,6 +123,15 @@ export default async function EspecialistaPage({
             {m.cidade}
             {m.uf && <Placa uf={m.uf} size="sm" tom="escuro" />}
           </p>
+
+          {/* selos: espaço + certificado */}
+          {(m.espaco || m.certificado) && (
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              {m.espaco && <Tag>{m.espaco}</Tag>}
+              {m.certificado && <Tag tom="brass">✓ Certificado</Tag>}
+            </div>
+          )}
+
           {m.bio && (
             <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed" style={{ color: C.sobreFundo }}>
               {m.bio}
@@ -128,7 +141,7 @@ export default async function EspecialistaPage({
 
         {/* whatsapp */}
         {m.whatsapp && (
-          <div className="px-5 pt-5">
+          <div id="cta-whatsapp" className="px-5 pt-5">
             <Botao
               full
               variante="whats"
@@ -151,6 +164,22 @@ export default async function EspecialistaPage({
                 valor={fone(m.whatsapp)}
                 href={waLink(m.whatsapp, m.nome)}
               />
+              {m.telefone && m.telefone !== m.whatsapp && (
+                <LinhaContato
+                  icone={<Ico.tel style={{ width: 18, height: 18 }} />}
+                  rotulo="Telefone"
+                  valor={fone(m.telefone)}
+                  href={`tel:+55${m.telefone.replace(/\D/g, "")}`}
+                />
+              )}
+              {m.email && (
+                <LinhaContato
+                  icone={<Ico.mail style={{ width: 18, height: 18 }} />}
+                  rotulo="E-mail"
+                  valor={m.email}
+                  href={`mailto:${m.email}`}
+                />
+              )}
               {m.instagram && (
                 <LinhaContato
                   icone={<Ico.ig style={{ width: 18, height: 18 }} />}
@@ -179,6 +208,23 @@ export default async function EspecialistaPage({
           </div>
         </div>
 
+        {/* artigos do autor */}
+        {artigos.length > 0 && (
+          <div className="px-4 pt-6">
+            <Eyebrow className="pb-2">Artigos publicados</Eyebrow>
+            <div className="space-y-3">
+              {artigos.slice(0, 3).map((a) => (
+                <LinhaEditorial key={a.id} a={a} />
+              ))}
+            </div>
+            {artigos.length > 3 && (
+              <p className="mt-3 text-center text-[13px]" style={{ color: C.muted }}>
+                {primeiroNome} tem {artigos.length} artigos publicados.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="px-4 pt-5">
           <div className="rounded-2xl p-4" style={{ background: C.surface }}>
             <p className="text-[13px]" style={{ color: C.muted }}>
@@ -191,6 +237,9 @@ export default async function EspecialistaPage({
           </div>
         </div>
       </div>
+
+      {/* dock flutuante de WhatsApp no mobile */}
+      {m.whatsapp && <DockWhatsapp whatsapp={m.whatsapp} nome={m.nome} anchorId="cta-whatsapp" />}
     </main>
   );
 }
