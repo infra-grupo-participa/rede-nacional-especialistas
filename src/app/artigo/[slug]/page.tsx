@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { C, F } from "@/lib/tokens";
-import { Avatar, Botao, TagNivel } from "@/components/atoms";
+import { C, F, BORDA } from "@/lib/tokens";
+import { Avatar, Botao } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { Capa, Chapeu, BlocosLidos } from "@/components/artigo/atoms-artigo";
 import { CopiarLink } from "@/components/artigo/copiar-link";
@@ -22,7 +22,6 @@ export default async function ArtigoPage({
   const [a, perfil] = await Promise.all([artigoPorSlug(slug), getPerfilAtual()]);
   if (!a) notFound();
 
-  // conta a leitura (RPC idempotente por request; publicado apenas)
   await incrementarLeitura(a.id);
 
   const autor = a.autor;
@@ -39,58 +38,48 @@ export default async function ArtigoPage({
         </div>
       </header>
 
-      <div className="mx-auto max-w-2xl px-5 pb-20 pt-5">
-        <article>
+      <div className="mx-auto max-w-2xl px-4 pb-10 pt-4">
+        <article className="rounded-3xl px-5 pb-8 pt-5" style={{ background: C.surface, border: BORDA }}>
           <Capa titulo={a.titulo} capa={a.capa} variante="alta" />
 
-          <div className="mt-4">
+          <div className="mt-5">
             <Chapeu>{chapeuDe(a)}</Chapeu>
           </div>
-          <h1 className="mt-2 text-[28px] leading-[1.15]" style={{ fontFamily: F.serif, fontWeight: 600, color: C.ink }}>
+          <h1 className="mt-1.5 text-[28px] leading-[1.15]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
             {a.titulo}
           </h1>
           {a.resumo && (
-            <p className="mt-2.5 text-[17px] leading-relaxed" style={{ color: C.muted }}>
+            <p className="mt-3 text-[17px] leading-relaxed" style={{ color: C.muted }}>
               {a.resumo}
             </p>
           )}
-          <p className="mt-3 text-[13px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
+
+          <p className="mt-4 text-[12px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
             {dataPonto(a.publicado_em ?? a.criado_em)} · {tempoLeitura(a)} min de leitura
-            {a.leituras > 0 && ` · ${a.leituras.toLocaleString("pt-BR")} leituras`}
+            {a.leituras > 0 ? ` · ${a.leituras.toLocaleString("pt-BR")} leituras` : ""}
           </p>
 
-          {/* cartão do autor */}
-          <Link
-            href={`/especialista/${autor.slug ?? autor.id}`}
-            className="mt-4 flex items-center gap-3 rounded-2xl p-3"
-            style={{ background: C.surface, border: `1px solid ${C.line}` }}
-          >
+          {/* cartão do autor — bg paper, sem borda, sem selo (fiel ao MVP) */}
+          <Link href={`/especialista/${autor.slug ?? autor.id}`} className="mt-4 flex w-full items-center gap-3 rounded-2xl p-3 text-left" style={{ background: C.paper }}>
             <Avatar nome={autor.nome} foto={autor.avatar_url} size={44} />
             <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-1.5">
-                <span className="truncate text-[15px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600 }}>
-                  {autor.nome}
-                </span>
-                <TagNivel qualificacao={autor.qualificacao} size="sm" />
+              <span className="block truncate text-[15px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
+                {autor.nome}
               </span>
               <span className="block truncate text-[13px]" style={{ color: C.muted }}>
                 {[autor.profissao, autor.cidade].filter(Boolean).join(" · ")}
               </span>
             </span>
-            <Ico.chevron style={{ width: 18, height: 18, color: C.muted }} />
+            <Ico.chevron style={{ width: 16, height: 16, color: C.muted }} />
           </Link>
 
-          <div className="my-5" style={{ borderTop: `1px solid ${C.line}` }} />
-
-          {/* corpo */}
-          <div>
-            <BlocosLidos blocos={a.blocos} />
-          </div>
+          <div className="mt-5" style={{ borderTop: `1px solid ${C.line}` }} />
+          <BlocosLidos blocos={a.blocos} />
 
           {/* CTA WhatsApp */}
           {autor.whatsapp && (
-            <div className="mt-8 rounded-2xl p-4" style={{ background: C.paper }}>
-              <p className="text-[15px]" style={{ color: C.ink }}>
+            <div className="mt-10 rounded-2xl p-5" style={{ background: C.paper }}>
+              <p className="text-[15px] leading-relaxed" style={{ color: C.ink }}>
                 Quer conversar com {primeiroNome} sobre este assunto?
               </p>
               <div className="mt-3">
@@ -101,16 +90,16 @@ export default async function ArtigoPage({
               <CopiarLink />
             </div>
           )}
-        </article>
 
-        {/* comentários */}
-        <ComentariosArtigo
-          artigoId={a.id}
-          logado={!!perfil}
-          primeiroNome={perfil ? perfil.nome.split(" ")[0] : null}
-          isAdmin={perfil?.papel === "admin" && perfil?.status === "aprovado"}
-          meuPerfilId={perfil?.id ?? null}
-        />
+          {/* comentários dentro do article, como no MVP */}
+          <ComentariosArtigo
+            artigoId={a.id}
+            logado={!!perfil}
+            primeiroNome={perfil ? perfil.nome.split(" ")[0] : null}
+            isAdmin={perfil?.papel === "admin" && perfil?.status === "aprovado"}
+            meuPerfilId={perfil?.id ?? null}
+          />
+        </article>
       </div>
     </main>
   );
