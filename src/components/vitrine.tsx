@@ -64,6 +64,14 @@ export function Vitrine({
             Rede Nacional
           </span>
         </div>
+        <Link
+          href="/feed"
+          className="flex items-center gap-1.5 rounded-full px-3.5"
+          style={{ height: 36, background: C.surface, color: C.ink }}
+        >
+          <Ico.balao style={{ width: 15, height: 15 }} />
+          <span className="text-[13px] font-semibold">Feed</span>
+        </Link>
         {sessao.isAdmin ? (
           <Link
             href="/admin"
