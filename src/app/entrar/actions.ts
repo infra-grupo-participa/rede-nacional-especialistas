@@ -65,7 +65,20 @@ export async function cadastrar(
   // Se a confirmação de e-mail estiver desligada, a sessão já vem ativa.
   if (data.session) {
     revalidatePath("/", "layout");
-    redirect("/aguardando");
+    // Aluno da base THB já vem espelhado e aprovado (o trigger vinculou o
+    // auth_id ao perfil existente). Nesse caso pula a fila e entra direto.
+    const jaAprovado = data.user
+      ? Boolean(
+          (
+            await supabase
+              .from("perfis")
+              .select("status")
+              .eq("auth_id", data.user.id)
+              .maybeSingle()
+          ).data?.status === "aprovado",
+        )
+      : false;
+    redirect(jaAprovado ? "/" : "/aguardando");
   }
 
   return {

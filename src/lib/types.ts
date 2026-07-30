@@ -5,6 +5,7 @@ export type StatusPerfil = "pendente" | "aprovado" | "recusado" | "suspenso";
 
 export interface Perfil {
   id: string;
+  auth_id: string | null;
   slug: string | null;
   nome: string;
   profissao: string;
@@ -23,6 +24,10 @@ export interface Perfil {
   status: StatusPerfil;
   xp: number;
   nivel_gam: number;
+  /** true = veio do espelho da base THB (vw_aluno_360). */
+  origem_thb: boolean;
+  /** Opt-out: aluno pediu para não aparecer na vitrine pública. */
+  oculto: boolean;
   atualizado_em: string;
   criado_em: string;
 }

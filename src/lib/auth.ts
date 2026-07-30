@@ -9,10 +9,11 @@ export async function getPerfilAtual(): Promise<Perfil | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  // Vínculo perfil↔auth é por auth_id (id do perfil é PK própria desde a 0003).
   const { data } = await supabase
     .from("perfis")
     .select("*")
-    .eq("id", user.id)
+    .eq("auth_id", user.id)
     .maybeSingle();
 
   return (data as Perfil | null) ?? null;
