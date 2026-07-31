@@ -10,7 +10,6 @@ import { MapaBrasil } from "@/components/mapa-brasil";
 import { SheetEstado } from "@/components/sheet-estado";
 import { LinhaEstado } from "@/components/linha-estado";
 import { BuscaComSugestoes } from "@/components/busca-sugestoes";
-import { BlocoNiveis } from "@/components/bloco-niveis";
 import { BlocoNewsletter } from "@/components/bloco-newsletter";
 import { PainelArtigos } from "@/components/artigo/painel-artigos";
 import { PainelArtigosDesktop } from "@/components/artigo/painel-artigos-desktop";
@@ -140,9 +139,6 @@ export function Vitrine({
             <div className="mx-auto max-w-2xl pt-3">
               <MapaBrasil contagem={contagem} onEstado={(uf) => setUfSheet(uf)} />
             </div>
-            <div className="mx-auto max-w-2xl px-5 pt-2">
-              <BlocoNiveis />
-            </div>
             <div className="mx-auto max-w-2xl">
               <div className="flex gap-2 overflow-x-auto px-5 pb-3 pt-6" style={{ scrollbarWidth: "none" }}>
                 {REGIOES.map((r) => (
@@ -200,9 +196,6 @@ export function Vitrine({
               </p>
               <div className="mt-5">
                 <BuscaComSugestoes facetas={facetas} />
-              </div>
-              <div className="mt-6">
-                <BlocoNiveis />
               </div>
             </div>
             <div className="pt-1">

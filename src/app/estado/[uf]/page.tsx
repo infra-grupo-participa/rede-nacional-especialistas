@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ESTADO_POR_UF } from "@/lib/estados";
 import { membrosPorUf } from "@/lib/queries";
-import { norm } from "@/lib/utils";
+import { rotuloProfissao } from "@/lib/profissoes-permitidas";
 import { C, F } from "@/lib/tokens";
 import { Ico } from "@/components/icons";
 import { Placa } from "@/components/atoms";
@@ -25,8 +25,9 @@ export default async function EstadoPage({
   if (!estado) notFound();
 
   const todos = await membrosPorUf(uf);
+  // filtro por profissão canônica (Advogado/Contador), tolerante às variações.
   const membros = prof
-    ? todos.filter((m) => norm(m.profissao) === norm(prof))
+    ? todos.filter((m) => rotuloProfissao(m.profissao) === rotuloProfissao(prof))
     : todos;
 
   return (
@@ -87,7 +88,7 @@ export default async function EstadoPage({
             </Link>
           </div>
         ) : (
-          <ListaStagger className="space-y-2.5">
+          <ListaStagger className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {membros.map((m) => (
               <ItemStagger key={m.id}>
                 <CardMembro m={m} />

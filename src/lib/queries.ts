@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Perfil } from "@/lib/types";
+import { FILTRO_PROF_OR, ehProfissaoPermitida } from "@/lib/profissoes-permitidas";
 
 const CAMPOS_CARD =
   "id, slug, nome, profissao, cidade, uf, whatsapp, avatar_url, qualificacao, bio, certificado";
@@ -19,14 +20,15 @@ export type PerfilCard = Pick<
   | "certificado"
 >;
 
-/** Contagem de especialistas aprovados por UF. */
+/** Contagem de especialistas aprovados por UF (só advogados e contadores). */
 export async function contagemPorUf(): Promise<Record<string, number>> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("perfis")
     .select("uf")
     .eq("status", "aprovado")
-    .eq("oculto", false);
+    .eq("oculto", false)
+    .or(FILTRO_PROF_OR);
 
   const c: Record<string, number> = {};
   for (const row of data ?? []) {
@@ -36,7 +38,7 @@ export async function contagemPorUf(): Promise<Record<string, number>> {
   return c;
 }
 
-/** Especialistas aprovados de uma UF. */
+/** Especialistas aprovados de uma UF (só advogados e contadores). */
 export async function membrosPorUf(uf: string): Promise<PerfilCard[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -45,6 +47,7 @@ export async function membrosPorUf(uf: string): Promise<PerfilCard[]> {
     .eq("status", "aprovado")
     .eq("oculto", false)
     .eq("uf", uf)
+    .or(FILTRO_PROF_OR)
     .order("nome");
   return (data as PerfilCard[]) ?? [];
 }
@@ -58,6 +61,7 @@ export async function buscarMembros(termo: string): Promise<PerfilCard[]> {
     .select(CAMPOS_CARD)
     .eq("status", "aprovado")
     .eq("oculto", false)
+    .or(FILTRO_PROF_OR)
     .order("nome")
     .limit(60);
 
@@ -96,13 +100,17 @@ export async function facetasBusca(): Promise<Facetas> {
     .from("perfis")
     .select("profissao, cidade, uf")
     .eq("status", "aprovado")
-    .eq("oculto", false);
+    .eq("oculto", false)
+    .or(FILTRO_PROF_OR);
 
   const prof: Record<string, number> = {};
   const cid: Record<string, { cidade: string; uf: string | null; n: number }> = {};
   for (const row of data ?? []) {
     const r = row as { profissao: string | null; cidade: string | null; uf: string | null };
-    if (r.profissao) prof[r.profissao] = (prof[r.profissao] || 0) + 1;
+    if (r.profissao && ehProfissaoPermitida(r.profissao)) {
+      const canon = r.profissao.trim();
+      prof[canon] = (prof[canon] || 0) + 1;
+    }
     if (r.cidade) {
       const chave = `${r.cidade}|${r.uf ?? ""}`;
       cid[chave] = cid[chave]
@@ -145,4 +153,56 @@ export async function perfilPorSlug(slug: string): Promise<Perfil | null> {
     .eq("oculto", false)
     .maybeSingle();
   return (data as Perfil | null) ?? null;
+}
+
+export interface PerfilStats {
+  n_artigos: number;
+  total_leituras: number;
+  n_posts: number;
+  total_score: number;
+}
+
+/** Estatísticas de um perfil (artigos, leituras, posts, score). */
+export async function estatisticasPerfil(perfilId: string): Promise<PerfilStats> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("perfil_stats")
+    .select("n_artigos, total_leituras, n_posts, total_score")
+    .eq("perfil_id", perfilId)
+    .maybeSingle();
+  return (
+    (data as PerfilStats | null) ?? {
+      n_artigos: 0,
+      total_leituras: 0,
+      n_posts: 0,
+      total_score: 0,
+    }
+  );
+}
+
+export interface AutorRanking {
+  perfil_id: string;
+  slug: string | null;
+  nome: string;
+  avatar_url: string;
+  qualificacao: string;
+  uf: string | null;
+  cidade: string;
+  profissao: string;
+  n_artigos: number;
+  total_leituras: number;
+  n_posts: number;
+  total_score: number;
+  pontos: number;
+}
+
+/** Ranking de autores por engajamento (top N). */
+export async function rankingAutores(limite = 20): Promise<AutorRanking[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("ranking_autores")
+    .select("*")
+    .gt("pontos", 0)
+    .limit(limite);
+  return (data as AutorRanking[]) ?? [];
 }

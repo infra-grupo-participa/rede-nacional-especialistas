@@ -28,6 +28,17 @@ export interface Perfil {
   certificado: boolean;
   /** telefone separado do whatsapp. */
   telefone: string;
+  /** título curto sob o nome (estilo LinkedIn). */
+  headline: string;
+  youtube: string;
+  tiktok: string;
+  facebook: string;
+  /** áreas de atuação como tags. */
+  especialidades: string[];
+  /** destaques/conquistas: [{titulo, texto}]. */
+  destaques: { titulo: string; texto: string }[];
+  /** cor/gradiente da capa quando sem imagem. */
+  cor_capa: string;
   xp: number;
   nivel_gam: number;
   /** true = veio do espelho da base THB (vw_aluno_360). */

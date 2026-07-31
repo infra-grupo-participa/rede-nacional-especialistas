@@ -92,4 +92,25 @@ export const Ico = {
   mapa: (p: P) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z" /><path d="M9 3v15M15 6v15" /></svg>
   ),
+  youtube: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M23 12s0-3.5-.4-5.2c-.2-.9-.9-1.6-1.8-1.9C19 4.5 12 4.5 12 4.5s-7 0-8.8.4c-.9.3-1.6 1-1.8 1.9C1 8.5 1 12 1 12s0 3.5.4 5.2c.2.9.9 1.6 1.8 1.9 1.8.4 8.8.4 8.8.4s7 0 8.8-.4c.9-.3 1.6-1 1.8-1.9.4-1.7.4-5.2.4-5.2zM9.8 15.3V8.7l5.7 3.3-5.7 3.3z" /></svg>
+  ),
+  tiktok: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M16.6 5.8a4.3 4.3 0 01-1-2.8h-3.2v12.9a2.3 2.3 0 11-2.3-2.3c.2 0 .4 0 .6.1V10.4a5.6 5.6 0 00-.6 0 5.5 5.5 0 105.5 5.5V9.3a7.5 7.5 0 004.3 1.4V7.5a4.3 4.3 0 01-3.3-1.7z" /></svg>
+  ),
+  facebook: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M24 12a12 12 0 10-13.9 11.9v-8.4H7v-3.5h3.1V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9v2.2h3.4l-.5 3.5h-2.9v8.4A12 12 0 0024 12z" /></svg>
+  ),
+  raio2: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+  ),
+  troféu: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M6 9a6 6 0 0012 0V4H6v5z" /><path d="M6 5H3v2a3 3 0 003 3M18 5h3v2a3 3 0 01-3 3M9 21h6M12 15v6" /></svg>
+  ),
+  estrela: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M12 2.5l2.95 6.2 6.85.63-5.18 4.6 1.55 6.72L12 16.98l-6.17 3.67 1.55-6.72-5.18-4.6 6.85-.63L12 2.5z" /></svg>
+  ),
+  livro: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M4 4h9a3 3 0 013 3v13a2.5 2.5 0 00-2.5-2.5H4zM20 4h-2a3 3 0 00-3 3v13a2.5 2.5 0 012.5-2.5H20z" /></svg>
+  ),
 } as const;

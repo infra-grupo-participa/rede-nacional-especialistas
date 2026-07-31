@@ -46,24 +46,32 @@ export function SheetEstado({ uf, onFechar }: { uf: string | null; onFechar: () 
 
       {dados && dados.profissoes.length > 0 && (
         <>
-          <Eyebrow className="pb-1 pt-6">Por profissão</Eyebrow>
-          <div style={{ borderTop: BORDA }}>
-            {dados.profissoes.map((p) => (
-              <button
-                key={p.nome}
-                onClick={() => irProfissao(p.nome)}
-                className="flex w-full items-center gap-3 text-left"
-                style={{ minHeight: 58, borderBottom: BORDA }}
-              >
-                <span className="min-w-0 flex-1 truncate text-[16px]" style={{ color: C.ink }}>
-                  {p.nome}
-                </span>
-                <span className="shrink-0 text-[13px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
-                  {p.n}
-                </span>
-                <Ico.chevron style={{ width: 16, height: 16, color: C.muted, flexShrink: 0 }} />
-              </button>
-            ))}
+          <Eyebrow className="pb-2 pt-6">Por profissão</Eyebrow>
+          <div className="grid grid-cols-2 gap-2.5">
+            {dados.profissoes.map((p) => {
+              const adv = p.nome.toLowerCase().includes("advog");
+              return (
+                <button
+                  key={p.nome}
+                  onClick={() => irProfissao(p.nome)}
+                  className="card-hover flex flex-col items-start gap-2 rounded-2xl p-3.5 text-left"
+                  style={{ background: C.surface, border: BORDA, minHeight: 96 }}
+                >
+                  <span
+                    className="flex items-center justify-center rounded-xl"
+                    style={{ width: 38, height: 38, background: C.petrolSoft, color: C.petrolDeep }}
+                  >
+                    {adv ? <Ico.escudo style={{ width: 20, height: 20 }} /> : <Ico.doc style={{ width: 20, height: 20 }} />}
+                  </span>
+                  <span className="text-[15px] font-semibold" style={{ color: C.ink }}>
+                    {p.nome}
+                  </span>
+                  <span className="text-[12px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
+                    {p.n} {p.n === 1 ? "profissional" : "profissionais"}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </>
       )}
