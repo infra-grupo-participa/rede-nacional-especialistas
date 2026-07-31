@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { C, F, BORDA } from "@/lib/tokens";
 import { Avatar } from "@/components/atoms";
 import { Ico } from "@/components/icons";
@@ -31,13 +31,23 @@ export function FeedCliente({
   sessao: SessaoFeed;
 }) {
   const router = useRouter();
+  const params = useSearchParams();
   const [titulo, setTitulo] = useState("");
   const [corpo, setCorpo] = useState("");
   const [imagem, setImagem] = useState("");
-  const [aberto, setAberto] = useState(false);
+  const logado = Boolean(sessao.perfilId);
+  // abre o composer já montado quando vier de "Publicar → Post no feed" (?compor=1)
+  const [aberto, setAberto] = useState(() => params.get("compor") === "1" && logado && sessao.aprovado);
   const [erro, setErro] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const logado = Boolean(sessao.perfilId);
+
+  // rola até o composer quando abre via atalho (sem setState no effect)
+  useEffect(() => {
+    if (aberto && params.get("compor") === "1") {
+      document.getElementById("composer-feed")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const publicar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +68,7 @@ export function FeedCliente({
 
   const composer =
     logado && sessao.aprovado ? (
-      <form onSubmit={publicar} className="rounded-2xl p-4" style={{ background: C.surface, border: BORDA }}>
+      <form id="composer-feed" onSubmit={publicar} className="rounded-2xl p-4" style={{ background: C.surface, border: BORDA }}>
         <div className="flex gap-3">
           <Avatar nome={sessao.nome ?? "?"} foto={sessao.avatar} size={40} />
           <div className="min-w-0 flex-1">

@@ -1,11 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { C, F, BORDA } from "@/lib/tokens";
 import { Chip, Segmentado, Eyebrow } from "@/components/atoms";
-import { Ico } from "@/components/icons";
-import { Logo } from "@/components/logo";
 import { MapaBrasil } from "@/components/mapa-brasil";
 import { SheetEstado } from "@/components/sheet-estado";
 import { LinhaEstado } from "@/components/linha-estado";
@@ -15,40 +12,10 @@ import { PainelArtigos } from "@/components/artigo/painel-artigos";
 import { PainelArtigosDesktop } from "@/components/artigo/painel-artigos-desktop";
 import { BlocoMaisLidos } from "@/components/artigo/cartoes";
 import { Rodape } from "@/components/rodape";
+import { TopNav, type SessaoNav } from "@/components/topnav";
 import { ESTADOS, REGIOES, type Regiao } from "@/lib/estados";
 import type { Facetas } from "@/lib/queries";
 import type { ArtigoComAutor } from "@/lib/artigos-tipos";
-
-export interface SessaoInfo {
-  nome: string | null;
-  primeiroNome: string | null;
-  isAdmin: boolean;
-  aprovado: boolean;
-}
-
-/* Botão de conta no topo (mobile e desktop). */
-function BotaoConta({ sessao }: { sessao: SessaoInfo }) {
-  const cls = "flex items-center gap-1.5 rounded-full px-3.5";
-  const style = { height: 40, background: C.surface, border: BORDA, color: C.ink } as const;
-  if (sessao.isAdmin)
-    return (
-      <Link href="/coordenacao" className={cls} style={style}>
-        <Ico.escudo style={{ width: 16, height: 16 }} />
-        <span className="text-[14px] font-semibold">Coordenação</span>
-      </Link>
-    );
-  if (sessao.primeiroNome)
-    return (
-      <Link href="/conta" className={cls} style={style}>
-        <span className="text-[14px] font-semibold">{sessao.primeiroNome}</span>
-      </Link>
-    );
-  return (
-    <Link href="/entrar" className={cls} style={{ ...style, lineHeight: "40px" }}>
-      <span className="text-[14px] font-semibold">Entrar</span>
-    </Link>
-  );
-}
 
 export function Vitrine({
   contagem,
@@ -59,7 +26,7 @@ export function Vitrine({
   contagem: Record<string, number>;
   facetas: Facetas;
   artigos: ArtigoComAutor[];
-  sessao: SessaoInfo;
+  sessao: SessaoNav;
 }) {
   const [regiao, setRegiao] = useState<Regiao | "Todos">("Todos");
   const [aba, setAba] = useState<"profissionais" | "artigos">("profissionais");
@@ -78,37 +45,10 @@ export function Vitrine({
 
   return (
     <main style={{ minHeight: "100dvh", background: C.fundo, color: C.ink }}>
+      <TopNav sessao={sessao} />
+
       {/* =============================================================== MOBILE */}
       <div className="lg:hidden">
-        {/* cabeçalho mobile */}
-        <header className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: `1px solid rgba(17,17,17,.14)` }}>
-          <div className="min-w-0 flex-1">
-            <Logo altura={26} />
-          </div>
-          <Link href="/artigos" className="flex items-center gap-1.5 rounded-full px-3.5" style={{ height: 36, background: C.surface, border: BORDA, color: C.ink }}>
-            <Ico.doc style={{ width: 15, height: 15 }} />
-            <span className="text-[13px] font-semibold">Artigos</span>
-          </Link>
-          <Link href="/feed" className="flex items-center gap-1.5 rounded-full px-3.5" style={{ height: 36, background: C.surface, border: BORDA, color: C.ink }}>
-            <Ico.balao style={{ width: 15, height: 15 }} />
-            <span className="text-[13px] font-semibold">Feed</span>
-          </Link>
-          {sessao.isAdmin ? (
-            <Link href="/coordenacao" className="flex items-center gap-2 rounded-full px-3" style={{ height: 36, background: C.surface, border: BORDA, color: C.ink }}>
-              <Ico.escudo style={{ width: 15, height: 15 }} />
-              <span className="text-[13px] font-semibold">Coordenação</span>
-            </Link>
-          ) : sessao.primeiroNome ? (
-            <Link href="/conta" className="flex items-center gap-2 rounded-full px-3.5" style={{ height: 36, background: C.surface, border: BORDA, color: C.ink }}>
-              <span className="text-[13px] font-semibold">{sessao.primeiroNome}</span>
-            </Link>
-          ) : (
-            <Link href="/entrar" className="rounded-full px-3.5 text-[13px] font-semibold" style={{ height: 36, background: C.surface, border: BORDA, color: C.ink, lineHeight: "36px" }}>
-              Entrar
-            </Link>
-          )}
-        </header>
-
         <div className="mx-auto max-w-2xl px-5 pt-6">
           <Eyebrow sobreFundo>Comunidade Time Holding Brasil</Eyebrow>
           <h1 className="mt-2 text-[32px] leading-[1.1]" style={{ fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
@@ -167,22 +107,6 @@ export function Vitrine({
 
       {/* ============================================================== DESKTOP */}
       <div className="hidden lg:block">
-        {/* barra superior */}
-        <div className="flex shrink-0 items-center justify-between px-8" style={{ height: 88, borderBottom: BORDA, background: C.fundo }}>
-          <Logo altura={64} />
-          <div className="flex items-center gap-2">
-            <Link href="/artigos" className="flex items-center gap-1.5 rounded-full px-3.5" style={{ height: 40, background: C.surface, border: BORDA, color: C.ink }}>
-              <Ico.doc style={{ width: 16, height: 16 }} />
-              <span className="text-[14px] font-semibold">Artigos</span>
-            </Link>
-            <Link href="/feed" className="flex items-center gap-1.5 rounded-full px-3.5" style={{ height: 40, background: C.surface, border: BORDA, color: C.ink }}>
-              <Ico.balao style={{ width: 16, height: 16 }} />
-              <span className="text-[14px] font-semibold">Feed</span>
-            </Link>
-            <BotaoConta sessao={sessao} />
-          </div>
-        </div>
-
         <div className="mx-auto px-10 py-12" style={{ maxWidth: 1160 }}>
           {/* seção 1 — texto+busca | mapa */}
           <div className="grid gap-12" style={{ gridTemplateColumns: "460px 1fr" }}>

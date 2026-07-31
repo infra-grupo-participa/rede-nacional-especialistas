@@ -1,18 +1,18 @@
-import Link from "next/link";
-import { C, F } from "@/lib/tokens";
-import { Ico } from "@/components/icons";
 import { listarFeed } from "@/lib/feed";
 import { rankingAutores } from "@/lib/queries";
-import { getPerfilAtual } from "@/lib/auth";
+import { getPerfilAtual, getSessaoNav } from "@/lib/auth";
+import { C } from "@/lib/tokens";
+import { TopNav } from "@/components/topnav";
 import { FeedCliente, type SessaoFeed } from "@/components/feed-cliente";
 
 export const dynamic = "force-dynamic";
 
 export default async function FeedPage() {
-  const [posts, ranking, perfil] = await Promise.all([
+  const [posts, ranking, perfil, nav] = await Promise.all([
     listarFeed(),
     rankingAutores(8),
     getPerfilAtual(),
+    getSessaoNav(),
   ]);
 
   const sessao: SessaoFeed = {
@@ -26,47 +26,7 @@ export default async function FeedPage() {
 
   return (
     <main style={{ minHeight: "100dvh", background: C.fundo, color: C.ink }}>
-      <header
-        className="flex items-center gap-2 px-4 py-3"
-        style={{ borderBottom: `1px solid rgba(17,17,17,.14)` }}
-      >
-        <Link href="/" className="flex items-center gap-2" aria-label="Voltar à vitrine">
-          <Ico.back style={{ width: 18, height: 18 }} />
-          <span
-            className="text-[18px] font-semibold"
-            style={{ color: C.ink, fontFamily: F.serif, letterSpacing: "-0.01em" }}
-          >
-            Feed
-          </span>
-        </Link>
-        <div className="ml-auto flex items-center gap-2">
-          <Link
-            href="/"
-            className="rounded-full px-3.5 text-[13px] font-semibold"
-            style={{ height: 36, background: C.surface, color: C.ink, lineHeight: "36px" }}
-          >
-            Vitrine
-          </Link>
-          {sessao.primeiroNome ? (
-            <Link
-              href="/conta"
-              className="rounded-full px-3.5 text-[13px] font-semibold"
-              style={{ height: 36, background: C.surface, color: C.ink, lineHeight: "36px" }}
-            >
-              {sessao.primeiroNome}
-            </Link>
-          ) : (
-            <Link
-              href="/entrar"
-              className="rounded-full px-3.5 text-[13px] font-semibold"
-              style={{ height: 36, background: C.surface, color: C.ink, lineHeight: "36px" }}
-            >
-              Entrar
-            </Link>
-          )}
-        </div>
-      </header>
-
+      <TopNav sessao={nav} />
       <FeedCliente postsIniciais={posts} ranking={ranking} sessao={sessao} />
     </main>
   );

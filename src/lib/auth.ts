@@ -43,3 +43,19 @@ export async function getUserId(): Promise<string | null> {
   } = await supabase.auth.getUser();
   return user?.id ?? null;
 }
+
+import type { SessaoNav } from "@/components/topnav";
+
+/** Monta a sessão para a barra de navegação (TopNav) a partir do perfil atual. */
+export async function getSessaoNav(): Promise<SessaoNav> {
+  const p = await getPerfilAtual();
+  return {
+    logado: !!p,
+    aprovado: p?.status === "aprovado",
+    isAdmin: p?.papel === "admin" && p?.status === "aprovado",
+    nome: p?.nome ?? null,
+    primeiroNome: p ? p.nome.split(" ")[0] : null,
+    avatar: p?.avatar_url ?? null,
+    slug: p?.slug ?? null,
+  };
+}
