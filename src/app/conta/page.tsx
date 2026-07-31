@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { C, F } from "@/lib/tokens";
+import { C, F, BORDA } from "@/lib/tokens";
 import { Ico } from "@/components/icons";
 import { Eyebrow } from "@/components/atoms";
 import { getPerfilAtual } from "@/lib/auth";
-import { FluxoAtualizacao } from "@/components/perfil/fluxo-atualizacao";
+import { EditorPerfil } from "@/components/perfil/editor-perfil";
 
 export const dynamic = "force-dynamic";
 
@@ -15,25 +15,30 @@ export default async function ContaPage() {
 
   return (
     <main style={{ minHeight: "100dvh", background: C.fundo, color: C.ink }}>
-      <header className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: `1px solid rgba(17,17,17,.14)` }}>
-        <Link href="/" aria-label="Início" className="flex shrink-0 items-center justify-center" style={{ width: 44, height: 44, color: C.ink }}>
-          <Ico.back style={{ width: 21, height: 21 }} />
+      <div className="sticky top-0 z-20 flex items-center gap-2 px-4 py-3" style={{ background: `${C.fundo}ee`, backdropFilter: "blur(8px)", borderBottom: `1px solid rgba(17,17,17,.10)` }}>
+        <Link href="/" aria-label="Início" className="press flex shrink-0 items-center justify-center rounded-full" style={{ width: 40, height: 40, color: C.ink, background: C.surface, border: BORDA }}>
+          <Ico.back style={{ width: 20, height: 20 }} />
         </Link>
         <div className="min-w-0 flex-1">
-          <Eyebrow>Confirme seus dados</Eyebrow>
+          <Eyebrow>Meu perfil</Eyebrow>
         </div>
-        <Link href="/meus-artigos" className="rounded-full px-3.5 text-[13px] font-semibold" style={{ height: 36, lineHeight: "36px", background: C.surface, border: `1px solid ${C.line}`, color: C.ink }}>
+        <Link href="/meus-artigos" className="press rounded-full px-3.5 text-[13px] font-semibold" style={{ height: 38, lineHeight: "38px", background: C.surface, border: BORDA, color: C.ink }}>
           Meus artigos
         </Link>
-      </header>
-
-      <div className="px-5 pt-4">
-        <h1 className="text-[26px]" style={{ fontFamily: F.serif }}>
-          Seu perfil na rede
-        </h1>
       </div>
 
-      <FluxoAtualizacao perfil={perfil} />
+      <div className="px-4 pt-4">
+        <div className="mx-auto max-w-lg">
+          <h1 className="text-[26px]" style={{ fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
+            Personalize seu perfil
+          </h1>
+          <p className="mt-1 text-[14px]" style={{ color: C.muted }}>
+            Capriche — é a sua vitrine na rede. Quanto mais completo, mais você se destaca.
+          </p>
+        </div>
+      </div>
+
+      <EditorPerfil perfil={perfil} />
     </main>
   );
 }

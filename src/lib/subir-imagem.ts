@@ -23,6 +23,23 @@ export const MEDIDAS = {
     maxMB: 5,
     dica: "1200 × 675 px (paisagem, 16:9) — entra no meio do artigo, na largura da coluna.",
   },
+  // perfil
+  avatar: {
+    rotulo: "Foto de perfil",
+    largura: 400,
+    altura: 400,
+    minLargura: 200,
+    maxMB: 4,
+    dica: "Quadrada (1:1), mínimo 200 px. Aparece no seu perfil e nos posts.",
+  },
+  perfilcapa: {
+    rotulo: "Capa do perfil",
+    largura: 1200,
+    altura: 400,
+    minLargura: 800,
+    maxMB: 5,
+    dica: "1200 × 400 px (banner). O fundo do topo do seu perfil.",
+  },
 } as const;
 
 export type TipoImagem = keyof typeof MEDIDAS;
