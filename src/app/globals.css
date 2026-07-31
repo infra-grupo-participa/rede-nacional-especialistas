@@ -185,6 +185,22 @@ a {
 .anim-modal {
   animation: modalIn 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
+
+/* Glow laranja do hero THB (brilho radial atrás do conteúdo). */
+.hero-glow {
+  position: relative;
+  overflow: hidden;
+}
+.hero-glow::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 60%;
+  height: 160%;
+  background: radial-gradient(circle, rgba(255, 107, 26, 0.28) 0%, rgba(255, 107, 26, 0) 68%);
+  pointer-events: none;
+}
 .anim-toast {
   animation: toastIn 0.2s ease;
 }

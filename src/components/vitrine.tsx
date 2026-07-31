@@ -13,6 +13,7 @@ import { PainelArtigosDesktop } from "@/components/artigo/painel-artigos-desktop
 import { BlocoMaisLidos } from "@/components/artigo/cartoes";
 import { Rodape } from "@/components/rodape";
 import { TopNav, type SessaoNav } from "@/components/topnav";
+import { HeroHome } from "@/components/hero-home";
 import { ESTADOS, REGIOES, type Regiao } from "@/lib/estados";
 import type { Facetas } from "@/lib/queries";
 import type { ArtigoComAutor } from "@/lib/artigos-tipos";
@@ -49,32 +50,7 @@ export function Vitrine({
 
       {/* =============================================================== MOBILE */}
       <div className="lg:hidden">
-        {/* mini-hero THB em preto */}
-        <div style={{ background: C.preto }}>
-          <div className="px-5 py-8">
-            <span className="uppercase" style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: ".14em", color: C.laranja, fontWeight: 700 }}>
-              Comunidade Time Holding Brasil
-            </span>
-            <h1 className="mt-2.5 text-[30px] leading-[1.05]" style={{ color: "#fff", fontFamily: F.serif, fontWeight: 800, letterSpacing: "-0.03em" }}>
-              A rede dos especialistas em <span style={{ color: C.laranja }}>holding familiar</span>
-            </h1>
-            <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,.72)" }}>
-              Advogados e contadores certificados, perto de você.
-            </p>
-            <div className="mt-5 flex gap-6">
-              {[
-                { n: `${total.toLocaleString("pt-BR")}+`, r: "especialistas" },
-                { n: "50", r: "escritórios" },
-                { n: "23", r: "edições" },
-              ].map((s) => (
-                <div key={s.r}>
-                  <div className="text-[22px] font-extrabold leading-none" style={{ color: C.laranja, fontFamily: F.serif, fontVariantNumeric: "tabular-nums" }}>{s.n}</div>
-                  <div className="mt-0.5 text-[11px]" style={{ color: "rgba(255,255,255,.6)" }}>{s.r}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <HeroHome total={total} compacto />
 
         <div className="mx-auto max-w-2xl px-5 pt-6">
           <div className="mt-0">
@@ -126,37 +102,7 @@ export function Vitrine({
 
       {/* ============================================================== DESKTOP */}
       <div className="hidden lg:block">
-        {/* HERO THB — faixa preta com o laranja da marca */}
-        <div style={{ background: C.preto }}>
-          <div className="mx-auto px-10 py-14" style={{ maxWidth: 1160 }}>
-            <span className="uppercase" style={{ fontFamily: F.mono, fontSize: 12, letterSpacing: ".16em", color: C.laranja, fontWeight: 700 }}>
-              Comunidade Time Holding Brasil
-            </span>
-            <h1 className="mt-3 max-w-3xl text-[52px] leading-[1.03]" style={{ color: "#fff", fontFamily: F.serif, fontWeight: 800, letterSpacing: "-0.03em" }}>
-              A rede dos especialistas em <span style={{ color: C.laranja }}>holding familiar</span> do Brasil
-            </h1>
-            <p className="mt-4 max-w-xl text-[17px] leading-relaxed" style={{ color: "rgba(255,255,255,.72)" }}>
-              Advogados e contadores formados e certificados pelos nossos Espaços de Instrução — perto de você, prontos para atender.
-            </p>
-            {/* números de autoridade */}
-            <div className="mt-8 flex flex-wrap gap-x-10 gap-y-4">
-              {[
-                { n: `${total.toLocaleString("pt-BR")}+`, r: "especialistas na rede" },
-                { n: "50", r: "escritórios Diamantes" },
-                { n: "23", r: "edições realizadas" },
-              ].map((s) => (
-                <div key={s.r}>
-                  <div className="text-[30px] font-extrabold leading-none" style={{ color: C.laranja, fontFamily: F.serif, fontVariantNumeric: "tabular-nums" }}>
-                    {s.n}
-                  </div>
-                  <div className="mt-1 text-[13px]" style={{ color: "rgba(255,255,255,.6)" }}>
-                    {s.r}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <HeroHome total={total} />
 
         <div className="mx-auto px-10 py-12" style={{ maxWidth: 1160 }}>
           {/* seção 1 — texto+busca | mapa */}

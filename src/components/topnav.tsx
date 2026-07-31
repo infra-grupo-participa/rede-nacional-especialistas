@@ -36,7 +36,7 @@ export function TopNav({ sessao, voltar }: { sessao: SessaoNav; voltar?: string 
         </Link>
       ) : (
         <Link href="/" aria-label="Início" className="shrink-0">
-          <Logo altura={30} />
+          <Logo altura={42} />
         </Link>
       )}
 
