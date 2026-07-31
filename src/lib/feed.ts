@@ -70,6 +70,34 @@ export async function listarFeed(limite = 40): Promise<PostFeed[]> {
   return lista.map((p) => ({ ...p, meu_voto: meusVotos[p.id] ?? 0 }));
 }
 
+/** Um post publicado por id, com autor e meu voto (página do post). */
+export async function postPorId(id: string): Promise<PostFeed | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("posts")
+    .select(
+      `id, titulo, corpo, imagem_url, score, n_comentarios, criado_em,
+       autor:autor_id (${CAMPOS_AUTOR})`,
+    )
+    .eq("id", id)
+    .eq("status", "publicado")
+    .maybeSingle();
+  if (!data) return null;
+
+  const perfil = await getPerfilAtual();
+  let meu_voto = 0;
+  if (perfil) {
+    const { data: v } = await supabase
+      .from("votos")
+      .select("valor")
+      .eq("post_id", id)
+      .eq("perfil_id", perfil.id)
+      .maybeSingle();
+    meu_voto = (v as { valor: number } | null)?.valor ?? 0;
+  }
+  return { ...(data as unknown as Omit<PostFeed, "meu_voto">), meu_voto };
+}
+
 /** Comentários de um post (ordem cronológica), com autor. */
 export async function listarComentarios(postId: string): Promise<ComentarioFeed[]> {
   const supabase = await createClient();
