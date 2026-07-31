@@ -4,12 +4,13 @@
    Não seguimos o dark mode do SO. */
 
 :root {
-  --fundo: #ffffff;
-  --ink: #111111;
+  --fundo: #faf6ee; /* off-white quente THB */
+  --ink: #141210;
   --surface: #ffffff;
-  --paper: #fbf7f3;
-  --line: #e9e3dd;
+  --paper: #f4eee3;
+  --line: #e7e0d3;
   --muted: #6e6a66;
+  --laranja: #ff6b1a;
 }
 
 *,
