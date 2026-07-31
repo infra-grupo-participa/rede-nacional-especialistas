@@ -8,22 +8,25 @@
    Sobre laranja a letra é sempre PRETA (contraste); nunca branca.
    ========================================================================== */
 
+/* Os tokens apontam para CSS vars (definidas em globals.css por tema). Trocar
+   [data-theme] no <html> repinta tudo — nenhum componente precisa mudar.
+   Fallbacks garantem o tema claro caso a var não resolva. */
 export const C = {
-  fundo: "#FAF6EE", // off-white quente — a página (não branco puro)
-  surface: "#FFFFFF", // cartões — brancos, sobressaem do off-white
-  paper: "#F4EEE3", // preenchimento leve (campos) sobre o off-white
-  ink: "#141210", // texto e ações principais (preto quente)
-  preto: "#0E0E0E", // preto profundo — seções de autoridade / hero
-  muted: "#6E6A66", // texto secundário
-  sobreFundo: "#6E6A66",
-  line: "#E7E0D3", // divisória / fio sobre o off-white
-  laranja: "#FF6B1A", // cor da marca THB
-  petrol: "#FF6B1A", // ação/seleção = laranja com letra preta
-  petrolDeep: "#B8451E", // laranja escuro (texto sobre soft, hover)
-  petrolSoft: "#FFEEE0", // realce laranja bem claro
-  brass: "#B8451E",
-  brassSoft: "#FFEEE0",
-  whats: "#141210",
+  fundo: "var(--fundo, #FAF6EE)",
+  surface: "var(--surface, #FFFFFF)",
+  paper: "var(--paper, #F4EEE3)",
+  ink: "var(--ink, #141210)",
+  preto: "var(--preto, #0E0E0E)",
+  muted: "var(--muted, #6E6A66)",
+  sobreFundo: "var(--sobreFundo, #6E6A66)",
+  line: "var(--line, #E7E0D3)",
+  laranja: "var(--laranja, #FF6B1A)",
+  petrol: "var(--petrol, #FF6B1A)",
+  petrolDeep: "var(--petrolDeep, #B8451E)",
+  petrolSoft: "var(--petrolSoft, #FFEEE0)",
+  brass: "var(--brass, #B8451E)",
+  brassSoft: "var(--brassSoft, #FFEEE0)",
+  whats: "var(--whats, #141210)",
   whatsDeep: "#000000",
   /** sombra laranja dos CTAs (micro-elevação da marca). */
   sombraLaranja: "0 8px 24px rgba(255,107,26,.28)",

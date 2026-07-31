@@ -82,7 +82,7 @@ export default async function EspecialistaPage({
   return (
     <main style={{ minHeight: "100dvh", background: C.fundo, color: C.ink }}>
       {/* topo fixo minimalista */}
-      <div className="sticky top-0 z-20 flex items-center gap-2 px-4 py-3" style={{ background: `${C.fundo}ee`, backdropFilter: "blur(8px)", borderBottom: `1px solid rgba(17,17,17,.10)` }}>
+      <div className="sticky top-0 z-20 flex items-center gap-2 px-4 py-3" style={{ background: "var(--fundo-blur)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.line}` }}>
         <Link href={m.uf ? `/estado/${m.uf}` : "/"} aria-label="Voltar" className="press flex shrink-0 items-center justify-center rounded-full" style={{ width: 40, height: 40, color: C.ink, background: C.surface, border: BORDA }}>
           <Ico.back style={{ width: 20, height: 20 }} />
         </Link>

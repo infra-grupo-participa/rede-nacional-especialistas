@@ -50,7 +50,7 @@ export function Vitrine({
 
       {/* =============================================================== MOBILE */}
       <div className="lg:hidden">
-        <HeroHome total={total} compacto />
+        <HeroHome compacto />
 
         <div className="mx-auto max-w-2xl px-5 pt-6">
           <div className="mt-0">
@@ -102,7 +102,7 @@ export function Vitrine({
 
       {/* ============================================================== DESKTOP */}
       <div className="hidden lg:block">
-        <HeroHome total={total} />
+        <HeroHome />
 
         <div className="mx-auto px-10 py-12" style={{ maxWidth: 1160 }}>
           {/* seção 1 — texto+busca | mapa */}

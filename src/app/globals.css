@@ -1,16 +1,47 @@
 @import "tailwindcss";
 
-/* Paleta fixa do design novo: a página é BRANCA, laranja é só ação/seleção.
-   Não seguimos o dark mode do SO. */
+/* Identidade THB com dois temas. Claro (padrão) = off-white quente. Dark =
+   identidade oficial do app dos alunos (preto quente + laranja glow). O laranja
+   #FF6B1A é o mesmo nos dois. Todos os tokens em C.* apontam para estas vars,
+   então trocar [data-theme] repinta o sistema inteiro. */
 
-:root {
-  --fundo: #faf6ee; /* off-white quente THB */
-  --ink: #141210;
+:root,
+:root[data-theme="light"] {
+  --fundo: #faf6ee; /* off-white quente */
   --surface: #ffffff;
   --paper: #f4eee3;
-  --line: #e7e0d3;
+  --ink: #141210;
+  --preto: #0e0e0e;
   --muted: #6e6a66;
+  --sobreFundo: #6e6a66;
+  --line: #e7e0d3;
   --laranja: #ff6b1a;
+  --petrol: #ff6b1a;
+  --petrolDeep: #b8451e;
+  --petrolSoft: #ffeee0;
+  --brass: #b8451e;
+  --brassSoft: #ffeee0;
+  --whats: #141210;
+  --fundo-blur: rgba(250, 246, 238, 0.9); /* topo sticky translúcido */
+}
+
+:root[data-theme="dark"] {
+  --fundo: #0a0a0b; /* preto quente */
+  --surface: #16130f; /* superfície escura */
+  --paper: #1f1b17; /* campos */
+  --ink: #f4efe8; /* texto claro */
+  --preto: #050505;
+  --muted: #a8a29e;
+  --sobreFundo: #a8a29e;
+  --line: #302a26;
+  --laranja: #ff6b1a;
+  --petrol: #ff6b1a;
+  --petrolDeep: #ff8a3d; /* no escuro, o "deep" clareia p/ contraste */
+  --petrolSoft: #2a1c12; /* realce laranja escuro */
+  --brass: #ff8a3d;
+  --brassSoft: #2a1c12;
+  --whats: #f4efe8;
+  --fundo-blur: rgba(10, 10, 11, 0.85);
 }
 
 *,

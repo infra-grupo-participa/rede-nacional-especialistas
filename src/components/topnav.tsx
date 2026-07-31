@@ -7,6 +7,7 @@ import { C, F, BORDA } from "@/lib/tokens";
 import { Avatar } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { sair } from "@/app/entrar/actions";
 import { criarArtigo } from "@/app/artigos/actions";
 import { pedirRedefinicaoSenha } from "@/app/conta/senha-actions";
@@ -28,7 +29,7 @@ export function TopNav({ sessao, voltar }: { sessao: SessaoNav; voltar?: string 
   return (
     <header
       className="sticky top-0 z-30 flex items-center gap-2 px-4 py-2.5"
-      style={{ background: `${C.fundo}f2`, backdropFilter: "blur(10px)", borderBottom: `1px solid rgba(17,17,17,.10)` }}
+      style={{ background: "var(--fundo-blur)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.line}` }}
     >
       {voltar ? (
         <Link href={voltar} aria-label="Voltar" className="press flex shrink-0 items-center justify-center rounded-full" style={{ width: 40, height: 40, color: C.ink, background: C.surface, border: BORDA }}>
@@ -48,6 +49,7 @@ export function TopNav({ sessao, voltar }: { sessao: SessaoNav; voltar?: string 
       </nav>
 
       <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
         {sessao.logado && sessao.aprovado && <BotaoPublicar />}
         {sessao.logado ? (
           <MenuConta sessao={sessao} />
