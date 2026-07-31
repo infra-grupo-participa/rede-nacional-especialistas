@@ -196,7 +196,7 @@ export function Botao({
   type?: "button" | "submit";
 }) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-xl text-[15px] font-semibold transition-opacity";
+    "press inline-flex items-center justify-center gap-2 rounded-xl text-[15px] font-semibold transition-opacity";
   const estilos: Record<string, CSSProperties> = {
     // sobre laranja a letra é sempre preta (contraste); whats/contato é preto.
     primario: { background: C.laranja, color: C.ink },

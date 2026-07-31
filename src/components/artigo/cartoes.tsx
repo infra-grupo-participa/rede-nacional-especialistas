@@ -31,7 +31,7 @@ export function Assinatura({ a, tamanho = 22 }: { a: ArtigoComAutor; tamanho?: n
 /* ---------------------------------------------------------- CartaoDestaque -- */
 export function CartaoDestaque({ a }: { a: ArtigoComAutor }) {
   return (
-    <Link href={hrefDe(a)} className="block w-full overflow-hidden rounded-2xl text-left" style={{ background: C.surface, border: BORDA }}>
+    <Link href={hrefDe(a)} className="card-hover block w-full overflow-hidden rounded-2xl text-left" style={{ background: C.surface, border: BORDA }}>
       <Capa titulo={a.titulo} capa={a.capa} variante="destaque" />
       <span className="block px-4 pb-4 pt-3.5">
         <span className="flex items-baseline gap-2">
@@ -57,7 +57,7 @@ export function CartaoDestaque({ a }: { a: ArtigoComAutor }) {
 /* ---------------------------------------------------------- LinhaEditorial -- */
 export function LinhaEditorial({ a }: { a: ArtigoComAutor }) {
   return (
-    <Link href={hrefDe(a)} className="flex w-full items-start gap-3.5 rounded-2xl p-3.5 text-left" style={{ background: C.surface, border: BORDA }}>
+    <Link href={hrefDe(a)} className="card-hover flex w-full items-start gap-3.5 rounded-2xl p-3.5 text-left" style={{ background: C.surface, border: BORDA }}>
       <span className="shrink-0" style={{ width: 96 }}>
         <Capa titulo={a.titulo} capa={a.capa} variante="miniatura" />
       </span>
@@ -87,7 +87,7 @@ export function LinhaEditorial({ a }: { a: ArtigoComAutor }) {
 /* Grade de 3 colunas do desktop. */
 export function CartaoArtigo({ a }: { a: ArtigoComAutor }) {
   return (
-    <Link href={hrefDe(a)} className="flex h-full w-full flex-col overflow-hidden rounded-2xl text-left" style={{ background: C.surface, border: BORDA }}>
+    <Link href={hrefDe(a)} className="card-hover flex h-full w-full flex-col overflow-hidden rounded-2xl text-left" style={{ background: C.surface, border: BORDA }}>
       <Capa titulo={a.titulo} capa={a.capa} variante="baixa" />
       <span className="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-3.5">
         <span className="flex items-baseline gap-2">

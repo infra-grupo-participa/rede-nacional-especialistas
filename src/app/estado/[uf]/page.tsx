@@ -7,6 +7,7 @@ import { C, F } from "@/lib/tokens";
 import { Ico } from "@/components/icons";
 import { Placa } from "@/components/atoms";
 import { CardMembro } from "@/components/card-membro";
+import { ListaStagger, ItemStagger } from "@/components/lista-stagger";
 
 export const dynamic = "force-dynamic";
 
@@ -86,11 +87,13 @@ export default async function EstadoPage({
             </Link>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <ListaStagger className="space-y-2.5">
             {membros.map((m) => (
-              <CardMembro key={m.id} m={m} />
+              <ItemStagger key={m.id}>
+                <CardMembro m={m} />
+              </ItemStagger>
             ))}
-          </div>
+          </ListaStagger>
         )}
       </div>
     </main>

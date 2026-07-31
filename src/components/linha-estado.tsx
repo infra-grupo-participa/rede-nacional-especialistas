@@ -49,7 +49,7 @@ export function LinhaEstado({ estado, n }: { estado: Estado; n: number }) {
   return (
     <Link
       href={`/estado/${estado.uf}`}
-      className="flex w-full items-center gap-3 rounded-2xl px-3 text-left transition-colors"
+      className="card-hover flex w-full items-center gap-3 rounded-2xl px-3 text-left"
       style={style}
     >
       {conteudo}

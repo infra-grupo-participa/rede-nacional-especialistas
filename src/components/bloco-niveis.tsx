@@ -17,7 +17,7 @@ export function BlocoNiveis() {
           <Link
             key={n.key}
             href={`/nivel/${n.key}`}
-            className="flex flex-col gap-1.5 rounded-2xl p-3.5"
+            className="card-hover flex flex-col gap-1.5 rounded-2xl p-3.5"
             style={{ background: C.surface, border: `1px solid ${C.line}`, minHeight: 100 }}
           >
             <IconeNivel q={n.key} size={26} />

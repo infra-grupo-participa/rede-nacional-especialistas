@@ -21,7 +21,8 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: [
-        "dimgrey-boar-969575.hostingersite.com",
+        "blog.timeholdingbrasil.com.br",
+        "dimgrey-boar-969575.hostingersite.com", // provisório, durante a transição
         ...(APP_HOST ? [APP_HOST] : []),
       ],
     },

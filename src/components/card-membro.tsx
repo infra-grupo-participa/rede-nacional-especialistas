@@ -13,7 +13,7 @@ export function CardMembro({ m, ativo }: { m: PerfilCard; ativo?: boolean }) {
   return (
     <Link
       href={href}
-      className="flex w-full items-center gap-3.5 rounded-2xl p-3.5 text-left transition-colors"
+      className="card-hover flex w-full items-center gap-3.5 rounded-2xl p-3.5 text-left"
       style={{ background: C.surface, border: `1px solid ${ativo ? C.petrol : C.line}`, minHeight: 88 }}
     >
       <Avatar nome={m.nome} foto={m.avatar_url} size={56} />

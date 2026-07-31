@@ -52,7 +52,7 @@ a {
   opacity: 0.7;
 }
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid #fe7413;
   outline-offset: 2px;
   border-radius: 8px;
 }
@@ -74,6 +74,56 @@ a {
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ---- Polish / micro-interações ------------------------------------------- */
+
+/* Card clicável: eleva de leve e ganha sombra no hover; afunda ao pressionar.
+   Aplica em cards de especialista, artigo, nível, estado. */
+.card-hover {
+  transition:
+    transform 0.16s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+  will-change: transform;
+}
+@media (hover: hover) {
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(17, 17, 17, 0.09);
+    border-color: #dcd3c9;
+  }
+}
+.card-hover:active {
+  transform: translateY(0) scale(0.995);
+}
+
+/* Botões/links de ação: leve reação ao toque. */
+.press {
+  transition: transform 0.12s ease, opacity 0.12s ease, filter 0.16s ease;
+}
+.press:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) {
+  .press:hover {
+    filter: brightness(0.97);
+  }
+}
+
+/* Entrada suave de blocos/listas (fade-up). */
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.entra {
+  animation: entra 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 @keyframes sheetUp {
