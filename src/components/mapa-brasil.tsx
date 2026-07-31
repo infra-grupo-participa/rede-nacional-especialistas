@@ -1,10 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { C, F, BORDA } from "@/lib/tokens";
 import { MAPA, MAPA_VB } from "@/lib/mapa-brasil";
 import { ESTADO_POR_UF } from "@/lib/estados";
+
+/* lê o tema atual (claro/escuro) reagindo à troca de data-theme no <html>. */
+function useTemaEscuro(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const obs = new MutationObserver(cb);
+      obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      return () => obs.disconnect();
+    },
+    () => document.documentElement.getAttribute("data-theme") === "dark",
+    () => false,
+  );
+}
 
 /* MapaBrasil — base fiel ao MVP (viewBox 1000x1031, siglas, estados pequenos
    puxados, coropletia laranja) + camada de interatividade (Framer Motion):
@@ -34,6 +47,14 @@ export function MapaBrasil({
   const [hover, setHover] = useState<string | null>(null);
   const [focado, setFocado] = useState<string | null>(null);
 
+  const escuro = useTemaEscuro();
+  const LARANJA = "#FF6B1A";
+  // rampas por tema. Claro: creme→laranja. Escuro: grafite→laranja vivo.
+  const VAZIO = escuro ? "#2A2622" : "#EDE7E1";
+  const RAMPA_INI = escuro ? "#5A3016" : "#FFE2C7";
+  const STROKE = escuro ? "#0A0A0B" : "#fff"; // fio que separa os estados
+  const ROTULO_VAZIO = escuro ? "#7C756D" : C.ink; // sigla dos estados sem gente
+
   const max = useMemo(() => Math.max(1, ...Object.values(contagem)), [contagem]);
   const ufMaisQuente = useMemo(() => {
     let melhor: string | null = null;
@@ -44,20 +65,25 @@ export function MapaBrasil({
 
   const corBase = (uf: string) => {
     const n = contagem[uf] || 0;
-    if (n === 0) return "#EDE7E1";
-    return misturar("#FFE2C7", C.laranja, 0.2 + 0.8 * Math.sqrt(n / max));
+    if (n === 0) return VAZIO;
+    return misturar(RAMPA_INI, LARANJA, 0.2 + 0.8 * Math.sqrt(n / max));
   };
-  // No hover/foco o estado escurece um passo (fica mais intenso), sem virar preto
-  // chapado — mantém a leitura de coropletia e ganha um anel laranja (stroke).
+  // No hover/foco o estado acende no laranja vivo da marca.
   const preenchimento = (uf: string) => {
     const n = contagem[uf] || 0;
     if (uf === hover || uf === focado) {
-      if (n === 0) return "#DCD3C9";
-      return misturar(C.laranja, C.ink, 0.35); // laranja profundo
+      if (n === 0) return escuro ? "#3A342E" : "#DCD3C9";
+      return escuro ? "#FF8A3D" : misturar(LARANJA, "#111111", 0.3);
     }
     return corBase(uf);
   };
-  const corRotulo = (uf: string) => (uf === hover || uf === focado ? "#fff" : C.ink);
+  // sigla: branca quando o estado está aceso/tem cor; senão a cor de "vazio".
+  const corRotulo = (uf: string) => {
+    const n = contagem[uf] || 0;
+    if (uf === hover || uf === focado) return escuro ? "#0A0A0B" : "#fff";
+    if (n === 0) return ROTULO_VAZIO;
+    return escuro ? "#0A0A0B" : C.ink; // sobre laranja, texto escuro
+  };
 
   const escolher = (uf: string) => {
     // leve foco/zoom antes de abrir a folha (a folha abre logo em seguida)
@@ -134,7 +160,7 @@ export function MapaBrasil({
                 key={uf}
                 d={MAPA[uf].d}
                 fill={preenchimento(uf)}
-                stroke={ativo ? C.laranja : "#fff"}
+                stroke={ativo ? C.laranja : STROKE}
                 strokeWidth={ativo ? 4 : 2.5}
                 strokeLinejoin="round"
                 style={{ cursor: vazio ? "default" : "pointer", transition: "fill .18s, stroke-width .12s, stroke .12s" }}
@@ -193,8 +219,8 @@ export function MapaBrasil({
               const n = contagem[uf] || 0;
               return (
                 <g key={uf}>
-                  <line x1={cx} y1={cy} x2={cx + 78} y2={cy} stroke="#D8D2CB" strokeWidth="2" />
-                  <circle cx={cx + 100} cy={cy} r="26" fill={preenchimento(uf)} stroke="#fff" strokeWidth="2.5" style={{ transition: "fill .18s" }} />
+                  <line x1={cx} y1={cy} x2={cx + 78} y2={cy} stroke={escuro ? "#4A423A" : "#D8D2CB"} strokeWidth="2" />
+                  <circle cx={cx + 100} cy={cy} r="26" fill={preenchimento(uf)} stroke={STROKE} strokeWidth="2.5" style={{ transition: "fill .18s" }} />
                   <text
                     x={cx + 100}
                     y={cy + 7}
@@ -233,7 +259,7 @@ export function MapaBrasil({
           <span className="text-[11px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
             menos
           </span>
-          <span className="h-2 flex-1 rounded-full" style={{ background: `linear-gradient(to right, #FFE2C7, ${C.laranja})` }} />
+          <span className="h-2 flex-1 rounded-full" style={{ background: `linear-gradient(to right, ${RAMPA_INI}, ${LARANJA})` }} />
           <span className="text-[11px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
             mais profissionais
           </span>
