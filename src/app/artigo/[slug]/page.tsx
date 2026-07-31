@@ -38,56 +38,62 @@ export default async function ArtigoPage({
         </div>
       </header>
 
-      <div className="mx-auto max-w-2xl px-4 pb-10 pt-4">
-        <article className="rounded-3xl px-5 pb-8 pt-5" style={{ background: C.surface, border: BORDA }}>
-          <Capa titulo={a.titulo} capa={a.capa} variante="alta" />
-
-          <div className="mt-5">
-            <Chapeu>{chapeuDe(a)}</Chapeu>
-          </div>
-          <h1 className="mt-1.5 text-[28px] leading-[1.15]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
-            {a.titulo}
-          </h1>
-          {a.resumo && (
-            <p className="mt-3 text-[17px] leading-relaxed" style={{ color: C.muted }}>
-              {a.resumo}
-            </p>
-          )}
-
-          <p className="mt-4 text-[12px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
-            {dataPonto(a.publicado_em ?? a.criado_em)} · {tempoLeitura(a)} min de leitura
-            {a.leituras > 0 ? ` · ${a.leituras.toLocaleString("pt-BR")} leituras` : ""}
+      {/* cabeçalho editorial — largura de leitura confortável */}
+      <div className="mx-auto px-5 pt-8 text-center" style={{ maxWidth: 720 }}>
+        <Chapeu>{chapeuDe(a)}</Chapeu>
+        <h1 className="mx-auto mt-3 text-[34px] leading-[1.12] md:text-[42px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 700, letterSpacing: "-0.025em" }}>
+          {a.titulo}
+        </h1>
+        {a.resumo && (
+          <p className="mx-auto mt-4 max-w-2xl text-[19px] leading-relaxed" style={{ color: C.muted }}>
+            {a.resumo}
           </p>
+        )}
 
-          {/* cartão do autor — bg paper, sem borda, sem selo (fiel ao MVP) */}
-          <Link href={`/especialista/${autor.slug ?? autor.id}`} className="mt-4 flex w-full items-center gap-3 rounded-2xl p-3 text-left" style={{ background: C.paper }}>
-            <Avatar nome={autor.nome} foto={autor.avatar_url} size={44} />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[15px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
+        {/* meta: autor + data + tempo */}
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link href={`/especialista/${autor.slug ?? autor.id}`} className="press flex items-center gap-2.5">
+            <Avatar nome={autor.nome} foto={autor.avatar_url} size={40} />
+            <span className="text-left">
+              <span className="block text-[14px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600 }}>
                 {autor.nome}
               </span>
-              <span className="block truncate text-[13px]" style={{ color: C.muted }}>
-                {[autor.profissao, autor.cidade].filter(Boolean).join(" · ")}
+              <span className="block text-[12px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
+                {dataPonto(a.publicado_em ?? a.criado_em)} · {tempoLeitura(a)} min
+                {a.leituras > 0 ? ` · ${a.leituras.toLocaleString("pt-BR")} leituras` : ""}
               </span>
             </span>
-            <Ico.chevron style={{ width: 16, height: 16, color: C.muted }} />
           </Link>
+        </div>
+      </div>
 
-          <div className="mt-5" style={{ borderTop: `1px solid ${C.line}` }} />
+      {/* capa grande sangrada */}
+      <div className="mx-auto mt-8 px-4" style={{ maxWidth: 920 }}>
+        <div className="overflow-hidden rounded-3xl">
+          <Capa titulo={a.titulo} capa={a.capa} variante="alta" />
+        </div>
+      </div>
+
+      {/* corpo — coluna de leitura */}
+      <div className="mx-auto px-5 pb-10 pt-8" style={{ maxWidth: 680 }}>
+        <article>
           <BlocosLidos blocos={a.blocos} />
 
           {/* CTA WhatsApp */}
           {autor.whatsapp && (
-            <div className="mt-10 rounded-2xl p-5" style={{ background: C.paper }}>
-              <p className="text-[15px] leading-relaxed" style={{ color: C.ink }}>
-                Quer conversar com {primeiroNome} sobre este assunto?
+            <div className="mt-12 rounded-3xl p-6 text-center" style={{ background: C.paper }}>
+              <Avatar nome={autor.nome} foto={autor.avatar_url} size={56} />
+              <p className="mt-3 text-[16px] leading-relaxed" style={{ color: C.ink }}>
+                Quer conversar com <strong>{primeiroNome}</strong> sobre este assunto?
               </p>
-              <div className="mt-3">
+              <div className="mx-auto mt-4 max-w-xs">
                 <Botao full variante="whats" href={waLink(autor.whatsapp, autor.nome)} icone={<Ico.wa style={{ width: 19, height: 19 }} />}>
                   Falar no WhatsApp
                 </Botao>
               </div>
-              <CopiarLink />
+              <div className="mt-2 flex justify-center">
+                <CopiarLink />
+              </div>
             </div>
           )}
 

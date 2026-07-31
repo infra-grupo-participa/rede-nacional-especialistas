@@ -64,10 +64,11 @@ export function BlocosLidos({ blocos }: { blocos: Bloco[] }) {
         if (b.tipo === "imagem") {
           if (!b.url) return null;
           return (
-            <figure key={b.id} className="mt-6">
-              <Capa titulo={b.legenda ?? ""} capa={b.url} variante="default" />
+            <figure key={b.id} className="my-8">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={b.url} alt={b.legenda ?? ""} style={{ width: "100%", borderRadius: 16, display: "block" }} />
               {b.legenda && (
-                <figcaption className="mt-2 text-[13px]" style={{ color: C.muted }}>
+                <figcaption className="mt-2.5 text-center text-[13px] italic" style={{ color: C.muted }}>
                   {b.legenda}
                 </figcaption>
               )}
@@ -79,8 +80,8 @@ export function BlocosLidos({ blocos }: { blocos: Bloco[] }) {
           return (
             <h2
               key={b.id}
-              className="mt-7 text-[20px] leading-snug"
-              style={{ fontFamily: F.serif, fontWeight: 600, color: C.ink, letterSpacing: "-0.018em" }}
+              className="mt-10 mb-1 text-[24px] leading-snug"
+              style={{ fontFamily: F.serif, fontWeight: 700, color: C.ink, letterSpacing: "-0.02em" }}
             >
               {texto}
             </h2>
@@ -90,13 +91,13 @@ export function BlocosLidos({ blocos }: { blocos: Bloco[] }) {
           return (
             <blockquote
               key={b.id}
-              className="mt-6 pl-4 text-[17px] leading-relaxed"
+              className="my-8 pl-5 text-[22px] leading-snug"
               style={{
-                borderLeft: `3px solid ${C.petrol}`,
-                color: C.petrolDeep,
+                borderLeft: `4px solid ${C.laranja}`,
+                color: C.ink,
                 fontFamily: F.serif,
                 fontWeight: 500,
-                letterSpacing: "-0.011em",
+                letterSpacing: "-0.015em",
               }}
             >
               {texto}
@@ -104,7 +105,7 @@ export function BlocosLidos({ blocos }: { blocos: Bloco[] }) {
           );
         }
         return (
-          <p key={b.id} className="mt-4 text-[16px] leading-relaxed" style={{ color: C.ink }}>
+          <p key={b.id} className="mt-5 text-[17.5px]" style={{ color: "#26231f", lineHeight: 1.75 }}>
             {texto}
           </p>
         );
