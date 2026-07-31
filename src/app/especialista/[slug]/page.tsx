@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { perfilPorSlug, estatisticasPerfil } from "@/lib/queries";
+import { postsDoAutor } from "@/lib/feed";
 import { artigosDoAutor } from "@/lib/artigos";
 import { getPerfilAtual } from "@/lib/auth";
 import { rotuloProfissao } from "@/lib/profissoes-permitidas";
@@ -12,6 +13,7 @@ import { DockWhatsapp } from "@/components/perfil/dock-whatsapp";
 import { RodapePerfil } from "@/components/perfil/rodape-perfil";
 import { RedesSociais } from "@/components/perfil/redes-sociais";
 import { BarraStats } from "@/components/perfil/barra-stats";
+import { PostsDoPerfil } from "@/components/perfil/posts-do-perfil";
 import { fone, waLink } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -72,9 +74,14 @@ export default async function EspecialistaPage({
   const { slug } = await params;
   const [m, sessao] = await Promise.all([perfilPorSlug(slug), getPerfilAtual()]);
   if (!m) notFound();
-  const [artigos, stats] = await Promise.all([artigosDoAutor(m.id), estatisticasPerfil(m.id)]);
+  const [artigos, stats, posts] = await Promise.all([
+    artigosDoAutor(m.id),
+    estatisticasPerfil(m.id),
+    postsDoAutor(m.id),
+  ]);
   const primeiroNome = m.nome.split(" ")[0];
   const ehMeuPerfil = sessao?.id === m.id;
+  const perfilIncompleto = ehMeuPerfil && !m.bio && !m.headline;
   const prof = rotuloProfissao(m.profissao);
   const especialidades = Array.isArray(m.especialidades) ? m.especialidades : [];
   const destaques = Array.isArray(m.destaques) ? m.destaques : [];
@@ -143,6 +150,31 @@ export default async function EspecialistaPage({
           </div>
         </div>
 
+        {/* aviso: você está vendo sua prévia pública (como os outros veem) */}
+        {ehMeuPerfil && (
+          <div className="px-4 pt-4">
+            <div className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5" style={{ background: C.petrolSoft, border: `1px solid ${C.petrolDeep}22` }}>
+              <Ico.olho style={{ width: 16, height: 16, color: C.petrolDeep, flexShrink: 0 }} />
+              <span className="text-[13px] leading-snug" style={{ color: C.petrolDeep }}>
+                Esta é a sua <strong>prévia pública</strong> — é assim que os outros especialistas veem o seu perfil.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* CTA: complete bio/headline para encorpar o perfil e a vitrine */}
+        {perfilIncompleto && (
+          <div className="px-4 pt-3">
+            <Link href="/conta" className="press flex items-center gap-3 rounded-xl px-3.5 py-3" style={{ background: C.brassSoft, border: "1px solid #EADFCE" }}>
+              <Ico.lapis style={{ width: 16, height: 16, color: C.brass, flexShrink: 0 }} />
+              <span className="min-w-0 flex-1 text-[13px] leading-snug" style={{ color: C.brass }}>
+                Seu perfil está sem <strong>apresentação</strong>. Adicione um resumo e uma frase de destaque para aparecer melhor na vitrine.
+              </span>
+              <Ico.chevron style={{ width: 15, height: 15, color: C.brass, flexShrink: 0 }} />
+            </Link>
+          </div>
+        )}
+
         {/* stats */}
         <div className="px-4 pt-4">
           <BarraStats stats={stats} />
@@ -205,6 +237,14 @@ export default async function EspecialistaPage({
             {m.email && <LinhaContato icone={<Ico.mail style={{ width: 18, height: 18 }} />} rotulo="E-mail" valor={m.email} href={`mailto:${m.email}`} />}
           </div>
         </Secao>
+
+        {/* histórico de publicações do autor (feed do perfil) */}
+        <div className="px-4 pt-5">
+          <Eyebrow className="px-1 pb-2.5" sobreFundo>
+            Publicações de {primeiroNome}
+          </Eyebrow>
+          <PostsDoPerfil posts={posts} primeiroNome={primeiroNome} />
+        </div>
 
         {/* artigos do autor */}
         {artigos.length > 0 && (

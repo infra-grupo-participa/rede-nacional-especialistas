@@ -43,7 +43,8 @@ export function TopNav({ sessao, voltar }: { sessao: SessaoNav; voltar?: string 
 
       {/* links principais — some no mobile bem estreito */}
       <nav className="ml-2 hidden items-center gap-1 sm:flex">
-        <LinkNav href="/" icone={<Ico.mapa style={{ width: 16, height: 16 }} />} rotulo="Vitrine" />
+        <LinkNav href="/" icone={<Ico.cima style={{ width: 16, height: 16 }} />} rotulo="Início" />
+        <LinkNav href="/vitrine" icone={<Ico.mapa style={{ width: 16, height: 16 }} />} rotulo="Vitrine" />
         <LinkNav href="/feed" icone={<Ico.balao style={{ width: 16, height: 16 }} />} rotulo="Feed" />
         <LinkNav href="/artigos" icone={<Ico.doc style={{ width: 16, height: 16 }} />} rotulo="Artigos" />
       </nav>

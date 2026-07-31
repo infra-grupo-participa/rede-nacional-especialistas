@@ -98,6 +98,26 @@ export async function postPorId(id: string): Promise<PostFeed | null> {
   return { ...(data as unknown as Omit<PostFeed, "meu_voto">), meu_voto };
 }
 
+/** Posts publicados de um autor (histórico do perfil, mais recentes primeiro). */
+export async function postsDoAutor(autorId: string, limite = 60): Promise<PostFeed[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("posts")
+    .select(
+      `id, titulo, corpo, imagem_url, score, n_comentarios, criado_em,
+       autor:autor_id (${CAMPOS_AUTOR})`,
+    )
+    .eq("autor_id", autorId)
+    .eq("status", "publicado")
+    .eq("tipo", "post")
+    .order("criado_em", { ascending: false })
+    .limit(limite);
+  return ((data ?? []) as unknown as Omit<PostFeed, "meu_voto">[]).map((p) => ({
+    ...p,
+    meu_voto: 0,
+  }));
+}
+
 /** Comentários de um post (ordem cronológica), com autor. */
 export async function listarComentarios(postId: string): Promise<ComentarioFeed[]> {
   const supabase = await createClient();

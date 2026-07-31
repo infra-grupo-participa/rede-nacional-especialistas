@@ -142,13 +142,16 @@ export async function contagemPorNivel(): Promise<Record<string, number>> {
   return c;
 }
 
-/** Perfil público por slug (para /especialista/[slug]). */
+/** Perfil público por slug (para /especialista/[slug]).
+ *  Aceita também o id (UUID) como identificador: links antigos/gerados antes do
+ *  backfill de slug caíam no id e davam 404. O fallback por id evita isso. */
 export async function perfilPorSlug(slug: string): Promise<Perfil | null> {
   const supabase = await createClient();
+  const ehUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const { data } = await supabase
     .from("perfis")
     .select("*")
-    .eq("slug", slug)
+    .eq(ehUuid ? "id" : "slug", slug)
     .eq("status", "aprovado")
     .eq("oculto", false)
     .maybeSingle();
@@ -205,4 +208,39 @@ export async function rankingAutores(limite = 20): Promise<AutorRanking[]> {
     .gt("pontos", 0)
     .limit(limite);
   return (data as AutorRanking[]) ?? [];
+}
+
+export interface EspecialistaCatalogo {
+  id: string;
+  slug: string | null;
+  nome: string;
+  profissao: string;
+  headline: string | null;
+  bio: string | null;
+  cidade: string;
+  uf: string | null;
+  whatsapp: string;
+  avatar_url: string;
+  qualificacao: string;
+  certificado: boolean;
+  especialidades: string[] | null;
+  n_posts: number;
+  n_artigos: number;
+  total_score: number;
+  pontos: number;
+  nivel_ordem: number;
+}
+
+/** Catálogo completo da vitrine (advogados e contadores aprovados),
+ *  ranqueado por relevância: qualificação primeiro, depois engajamento. */
+export async function catalogoEspecialistas(): Promise<EspecialistaCatalogo[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("catalogo_especialistas")
+    .select("*")
+    .order("nivel_ordem", { ascending: false })
+    .order("pontos", { ascending: false })
+    .order("certificado", { ascending: false })
+    .order("nome", { ascending: true });
+  return (data as EspecialistaCatalogo[]) ?? [];
 }

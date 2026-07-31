@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { C, F, BORDA } from "@/lib/tokens";
+import { Ico } from "@/components/icons";
 import { Chip, Segmentado, Eyebrow } from "@/components/atoms";
 import { MapaBrasil } from "@/components/mapa-brasil";
 import { SheetEstado } from "@/components/sheet-estado";
@@ -82,10 +84,16 @@ export function Vitrine({
                   </Chip>
                 ))}
               </div>
-              <div className="space-y-2 px-5 pb-8">
+              <div className="space-y-2 px-5">
                 {estadosVisiveis.map((e) => (
                   <LinhaEstado key={e.uf} estado={e} n={contagem[e.uf] ?? 0} />
                 ))}
+              </div>
+              <div className="px-5 pb-8 pt-4">
+                <Link href="/vitrine" className="press flex w-full items-center justify-center gap-2 rounded-xl text-[14px] font-semibold" style={{ height: 48, background: C.ink, color: "#fff" }}>
+                  Ver catálogo completo de especialistas
+                  <Ico.chevron style={{ width: 16, height: 16 }} />
+                </Link>
               </div>
             </div>
           </>
@@ -121,6 +129,10 @@ export function Vitrine({
             </div>
             <div className="pt-1">
               <MapaBrasil contagem={contagem} onEstado={(uf) => setUfSheet(uf)} />
+              <Link href="/vitrine" className="press mt-5 flex w-full items-center justify-center gap-2 rounded-xl text-[14px] font-semibold" style={{ height: 48, background: C.ink, color: "#fff" }}>
+                Ver catálogo completo de especialistas
+                <Ico.chevron style={{ width: 16, height: 16 }} />
+              </Link>
             </div>
           </div>
 
