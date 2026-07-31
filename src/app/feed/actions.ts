@@ -7,12 +7,25 @@ import { getPerfilAtual } from "@/lib/auth";
 export type FeedResult = { erro?: string; ok?: boolean };
 
 const MAX_POST = 2000;
+const MAX_TITULO = 140;
 const MAX_COMENT = 1000;
 
-/** Publica um POST curto (publica direto — sem fila). */
-export async function criarPost(corpoBruto: string): Promise<FeedResult> {
-  const corpo = (corpoBruto || "").trim();
-  if (!corpo) return { erro: "Escreva algo antes de publicar." };
+export interface PostInput {
+  titulo?: string;
+  corpo: string;
+  imagem_url?: string;
+}
+
+/** Publica um POST (publica direto — sem fila). Título e imagem opcionais. */
+export async function criarPost(input: PostInput | string): Promise<FeedResult> {
+  // compat: aceita string (corpo) ou objeto {titulo, corpo, imagem_url}
+  const dados: PostInput = typeof input === "string" ? { corpo: input } : input;
+  const corpo = (dados.corpo || "").trim();
+  const titulo = (dados.titulo || "").trim().slice(0, MAX_TITULO);
+  const imagem_url = (dados.imagem_url || "").trim();
+
+  if (!corpo && !imagem_url && !titulo)
+    return { erro: "Escreva algo antes de publicar." };
   if (corpo.length > MAX_POST) return { erro: "Post muito longo." };
 
   const perfil = await getPerfilAtual();
@@ -23,7 +36,7 @@ export async function criarPost(corpoBruto: string): Promise<FeedResult> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("posts")
-    .insert({ autor_id: perfil.id, tipo: "post", status: "publicado", corpo });
+    .insert({ autor_id: perfil.id, tipo: "post", status: "publicado", titulo, corpo, imagem_url });
 
   if (error) return { erro: "Não foi possível publicar. Tente de novo." };
   revalidatePath("/feed");

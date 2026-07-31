@@ -2,13 +2,18 @@ import Link from "next/link";
 import { C, F } from "@/lib/tokens";
 import { Ico } from "@/components/icons";
 import { listarFeed } from "@/lib/feed";
+import { rankingAutores } from "@/lib/queries";
 import { getPerfilAtual } from "@/lib/auth";
 import { FeedCliente, type SessaoFeed } from "@/components/feed-cliente";
 
 export const dynamic = "force-dynamic";
 
 export default async function FeedPage() {
-  const [posts, perfil] = await Promise.all([listarFeed(), getPerfilAtual()]);
+  const [posts, ranking, perfil] = await Promise.all([
+    listarFeed(),
+    rankingAutores(8),
+    getPerfilAtual(),
+  ]);
 
   const sessao: SessaoFeed = {
     perfilId: perfil?.id ?? null,
@@ -62,7 +67,7 @@ export default async function FeedPage() {
         </div>
       </header>
 
-      <FeedCliente postsIniciais={posts} sessao={sessao} />
+      <FeedCliente postsIniciais={posts} ranking={ranking} sessao={sessao} />
     </main>
   );
 }

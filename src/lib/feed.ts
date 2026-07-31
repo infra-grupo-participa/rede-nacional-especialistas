@@ -8,11 +8,15 @@ export interface AutorResumo {
   nome: string;
   avatar_url: string;
   qualificacao: Qualificacao;
+  headline?: string;
+  profissao?: string;
 }
 
 export interface PostFeed {
   id: string;
+  titulo: string;
   corpo: string;
+  imagem_url: string;
   score: number;
   n_comentarios: number;
   criado_em: string;
@@ -28,7 +32,7 @@ export interface ComentarioFeed {
   autor: AutorResumo;
 }
 
-const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao";
+const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, headline, profissao";
 
 /** Feed de posts publicados, ordenado por recência, com autor e meu voto. */
 export async function listarFeed(limite = 40): Promise<PostFeed[]> {
@@ -37,7 +41,7 @@ export async function listarFeed(limite = 40): Promise<PostFeed[]> {
   const { data: posts } = await supabase
     .from("posts")
     .select(
-      `id, corpo, score, n_comentarios, criado_em,
+      `id, titulo, corpo, imagem_url, score, n_comentarios, criado_em,
        autor:autor_id (${CAMPOS_AUTOR})`,
     )
     .eq("status", "publicado")
