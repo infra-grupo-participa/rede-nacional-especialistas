@@ -236,11 +236,133 @@ a {
   animation: toastIn 0.2s ease;
 }
 
+/* ---- Landing institucional (home) ---------------------------------------
+   Utilitários exclusivos da LP. Prefixo .lp- para não vazarem no app logado.
+   Regra da LP: profundidade vem de cor sólida + fio + glow. Nada de sombra. */
+
+/* container de conteúdo — 1280px, respiro lateral fluido. */
+.lp-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+@media (min-width: 768px) {
+  .lp-container {
+    padding-inline: 40px;
+  }
+}
+
+/* ritmo vertical entre seções: 60 → 80 → 112px. */
+.lp-secao {
+  padding-block: 60px;
+}
+@media (min-width: 768px) {
+  .lp-secao {
+    padding-block: 80px;
+  }
+}
+@media (min-width: 1024px) {
+  .lp-secao {
+    padding-block: 112px;
+  }
+}
+
+/* glow radial laranja atrás de blocos escuros. O elemento pai precisa de
+   position:relative e overflow:hidden. */
+.lp-glow {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(0.5px);
+}
+
+/* respiração do glow — lenta o bastante para não puxar o olho do conteúdo. */
+@keyframes lpRespira {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.1);
+  }
+}
+.lp-respira {
+  animation: lpRespira 7s ease-in-out infinite;
+}
+
+/* entrada por scroll. O estado inicial fica no CSS e a classe .visivel é
+   adicionada pelo IntersectionObserver — assim, se o JS falhar, o conteúdo
+   ainda aparece (ver .no-js abaixo e o fallback do hook). */
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.62s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.62s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+.lp-reveal.visivel {
+  opacity: 1;
+  transform: none;
+}
+
+/* fio degradê de 1px (borda inferior do header, divisórias de bloco escuro). */
+.lp-fio {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 106, 0, 0) 0%,
+    #ff6a00 18%,
+    #ffb648 82%,
+    rgba(255, 182, 72, 0) 100%
+  );
+}
+
+/* card escuro que acende no hover — substitui a sombra por borda viva. */
+@media (hover: hover) {
+  .lp-card-escuro:hover {
+    border-color: rgba(255, 107, 26, 0.5);
+    background: #181614;
+  }
+}
+.lp-card-escuro {
+  transition: border-color 0.18s ease, background-color 0.18s ease,
+    transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* card claro da LP — sem sombra, o fio é que reage. */
+.lp-card-claro {
+  transition: border-color 0.18s ease, transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@media (hover: hover) {
+  .lp-card-claro:hover {
+    border-color: var(--laranja);
+    transform: translateY(-3px);
+  }
+}
+
+/* barra de rolagem discreta em trilhos horizontais da LP. */
+.lp-trilho {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.lp-trilho::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  /* sem movimento, o reveal não pode esconder conteúdo. */
+  .lp-reveal {
+    opacity: 1;
+    transform: none;
   }
 }
