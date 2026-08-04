@@ -235,9 +235,15 @@ export interface EspecialistaCatalogo {
  *  ranqueado por relevância: qualificação primeiro, depois engajamento. */
 export async function catalogoEspecialistas(): Promise<EspecialistaCatalogo[]> {
   const supabase = await createClient();
+  // Colunas explícitas em vez de "*": é página pública (todo acesso paga o
+  // payload) e a view traz campos que a vitrine não usa. Sem .limit() de
+  // propósito — o mapa por UF filtra no cliente e cortar aqui sumiria com
+  // especialistas de estados inteiros.
   const { data } = await supabase
     .from("catalogo_especialistas")
-    .select("*")
+    .select(
+      "id, slug, nome, profissao, headline, bio, cidade, uf, whatsapp, avatar_url, qualificacao, certificado, especialidades, n_posts, n_artigos, total_score, pontos, nivel_ordem",
+    )
     .order("nivel_ordem", { ascending: false })
     .order("pontos", { ascending: false })
     .order("certificado", { ascending: false })
