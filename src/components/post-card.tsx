@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { C, F } from "@/lib/tokens";
-import { Avatar } from "@/components/atoms";
+import { Avatar, TagNivel } from "@/components/atoms";
+import { Ico } from "@/components/icons";
 import { tempoRelativo } from "@/lib/utils";
 import { Comentarios } from "@/components/comentarios";
 import { PostAcoes } from "@/components/post-acoes";
@@ -41,14 +42,22 @@ export function PostCard({
           <Avatar nome={post.autor.nome} foto={post.autor.avatar_url} size={44} />
         </Link>
         <div className="min-w-0 flex-1">
-          <Link href={href} className="block truncate text-[15px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
-            {post.autor.nome}
-          </Link>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <Link href={href} className="truncate text-[15px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
+              {post.autor.nome}
+            </Link>
+            <TagNivel qualificacao={post.autor.qualificacao} size="sm" />
+          </span>
           <span className="block truncate text-[12px]" style={{ color: C.muted }}>
             {subtitulo && `${subtitulo} · `}
             {tempoRelativo(post.criado_em)}
           </span>
         </div>
+        {post.fixado && (
+          <span className="flex shrink-0 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold" style={{ height: 24, background: C.petrolSoft, color: C.petrolDeep }}>
+            <Ico.pin style={{ width: 12, height: 12 }} /> Fixado
+          </span>
+        )}
       </div>
 
       {/* título + corpo (com "Ler mais") */}
@@ -89,7 +98,14 @@ export function PostCard({
 
       {abertoComent && (
         <div className="px-4 pb-3">
-          <Comentarios postId={post.id} logado={logado} isAdmin={isAdmin} meuPerfilId={meuPerfilId} />
+          <Comentarios
+            postId={post.id}
+            logado={logado}
+            isAdmin={isAdmin}
+            meuPerfilId={meuPerfilId}
+            travado={post.comentarios_travados}
+            motivoTrava={post.travado_motivo}
+          />
         </div>
       )}
     </article>

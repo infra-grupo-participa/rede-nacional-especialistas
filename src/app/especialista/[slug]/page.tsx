@@ -6,7 +6,7 @@ import { artigosDoAutor } from "@/lib/artigos";
 import { getPerfilAtual } from "@/lib/auth";
 import { rotuloProfissao } from "@/lib/profissoes-permitidas";
 import { C, F, BORDA } from "@/lib/tokens";
-import { Avatar, Botao, Placa, Tag, Eyebrow } from "@/components/atoms";
+import { Avatar, Botao, Placa, Tag, Eyebrow, TagNivel } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { LinhaEditorial } from "@/components/artigo/cartoes";
 import { DockWhatsapp } from "@/components/perfil/dock-whatsapp";
@@ -115,8 +115,9 @@ export default async function EspecialistaPage({
             )}
           </div>
 
-          <h1 className="mt-3 text-[26px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
+          <h1 className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[26px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
             {m.nome}
+            <TagNivel qualificacao={m.qualificacao} size="md" />
           </h1>
           {m.headline ? (
             <p className="mt-1 text-[15px] leading-snug" style={{ color: C.ink }}>
@@ -243,7 +244,7 @@ export default async function EspecialistaPage({
           <Eyebrow className="px-1 pb-2.5" sobreFundo>
             Publicações de {primeiroNome}
           </Eyebrow>
-          <PostsDoPerfil posts={posts} primeiroNome={primeiroNome} />
+          <PostsDoPerfil posts={posts} primeiroNome={primeiroNome} soMembros={sessao?.status !== "aprovado"} />
         </div>
 
         {/* artigos do autor */}

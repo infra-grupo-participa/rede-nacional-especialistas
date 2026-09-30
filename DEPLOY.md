@@ -33,8 +33,9 @@ NEXT_PUBLIC_SUPABASE_SCHEMA=rede
 - Apontar o domínio definitivo + SSL para o app.
 - Atualizar **Supabase Auth → URL Configuration** (Site URL / Redirect URLs) para o
   domínio de produção, senão os links de auth voltam para localhost.
-- Agendar um cron chamando `select rede.sync_alunos_thb();` para manter o espelho da
-  base de alunos (`vw_aluno_360`) atualizado.
+- O cron do espelho da base de alunos (`select rede.sync_alunos_thb();`) é criado pela
+  migration 0006 (job `rede-sync-alunos-thb`, 03:00 de Brasília) quando o pg_cron existe.
+  Sem pg_cron, agendar à mão ou usar o botão em `/coordenacao/entrada`.
 
 ## Notas
 

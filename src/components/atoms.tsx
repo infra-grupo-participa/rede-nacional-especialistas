@@ -85,9 +85,9 @@ export function Avatar({
 }
 
 /* ------------------------------------------------------------- TagNivel -- */
-/* Selo de QUALIFICAÇÃO ao lado do nome (design novo). Ouro/Platina = estrela,
-   Diamante/Vermelho = gema. O nível base THB NÃO mostra selo (decisão Marcio).
-   Delega ao SeloNivel para manter um só visual em todo o app. */
+/* Tag de QUALIFICAÇÃO ao lado do nome (THB, Aurum, Platina, Diamante,
+   Diamante Vermelho). Todos os níveis aparecem, THB inclusive (documento da
+   comunidade, 30/09/2026). Delega ao SeloNivel para ter um só visual no app. */
 export function TagNivel({
   qualificacao,
   size = "md",

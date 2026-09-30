@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { C, F } from "@/lib/tokens";
+import { C, F, BORDA } from "@/lib/tokens";
 import { Ico } from "@/components/icons";
-import { votar, apagarPost } from "@/app/feed/actions";
+import { votar, apagarPost, fixarPost, travarComentarios } from "@/app/feed/actions";
 import type { PostFeed } from "@/lib/feed";
 
 /* Barra de ações do post (curtir/score, comentar, compartilhar). Reusada no card
@@ -96,10 +96,101 @@ export function PostAcoes({
         {copiado ? "Copiado" : "Compartilhar"}
       </button>
 
-      {(souAutor || isAdmin) && (
-        <button onClick={remover} disabled={pending} aria-label="Remover post" className="flex items-center justify-center rounded-full" style={{ width: 34, height: 34, color: C.muted }}>
-          <Ico.lixo style={{ width: 15, height: 15 }} />
-        </button>
+      {isAdmin ? (
+        <MenuModeracao post={post} onRemover={remover} />
+      ) : (
+        souAutor && (
+          <button onClick={remover} disabled={pending} aria-label="Remover post" className="flex items-center justify-center rounded-full" style={{ width: 34, height: 34, color: C.muted }}>
+            <Ico.lixo style={{ width: 15, height: 15 }} />
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
+/* Menu da coordenação no post: fixar em destaque, travar/liberar comentários
+   (com motivo) e remover. Cada ação cai no registro de atividades do banco. */
+function MenuModeracao({ post, onRemover }: { post: PostFeed; onRemover: () => void }) {
+  const router = useRouter();
+  const [aberto, setAberto] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!aberto) return;
+    const fora = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setAberto(false);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setAberto(false);
+    document.addEventListener("mousedown", fora);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", fora);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [aberto]);
+
+  const executar = (fn: () => Promise<{ erro?: string }>) =>
+    start(async () => {
+      const r = await fn();
+      if (r.erro) setErro(r.erro);
+      else {
+        setAberto(false);
+        router.refresh();
+      }
+    });
+
+  const alternarTrava = () => {
+    if (post.comentarios_travados) {
+      executar(() => travarComentarios(post.id, false));
+      return;
+    }
+    const motivo = prompt("Motivo da trava (aparece para os membros). Pode deixar em branco.", "Post fora da regra da #.");
+    if (motivo === null) return;
+    executar(() => travarComentarios(post.id, true, motivo));
+  };
+
+  const item = "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] font-semibold";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setAberto((v) => !v)}
+        aria-label="Moderação"
+        aria-expanded={aberto}
+        className="flex items-center justify-center rounded-full"
+        style={{ width: 34, height: 34, color: C.muted }}
+      >
+        <Ico.escudo style={{ width: 16, height: 16 }} />
+      </button>
+      {aberto && (
+        <div
+          role="menu"
+          className="anim-fade absolute bottom-10 right-0 z-30 w-60 overflow-hidden rounded-2xl"
+          style={{ background: C.surface, border: BORDA, boxShadow: "0 16px 40px rgba(17,17,17,.16)" }}
+        >
+          <p className="px-3.5 pb-1 pt-2.5 text-[11px] uppercase" style={{ color: C.muted, fontFamily: F.mono, letterSpacing: ".12em" }}>
+            Moderação
+          </p>
+          <button role="menuitem" disabled={pending} onClick={() => executar(() => fixarPost(post.id, !post.fixado))} className={item} style={{ color: C.ink }}>
+            <Ico.pin style={{ width: 16, height: 16, color: C.muted }} />
+            {post.fixado ? "Tirar do destaque" : "Fixar em destaque"}
+          </button>
+          <button role="menuitem" disabled={pending} onClick={alternarTrava} className={item} style={{ color: C.ink }}>
+            <Ico.balao style={{ width: 16, height: 16, color: C.muted }} />
+            {post.comentarios_travados ? "Liberar comentários" : "Travar comentários"}
+          </button>
+          <div style={{ borderTop: BORDA }} />
+          <button role="menuitem" disabled={pending} onClick={onRemover} className={item} style={{ color: "#B24A42" }}>
+            <Ico.lixo style={{ width: 16, height: 16 }} />
+            Remover post
+          </button>
+          {erro && (
+            <p className="px-3.5 pb-2.5 text-[12px]" style={{ color: "#B24A42" }}>
+              {erro}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

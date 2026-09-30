@@ -48,7 +48,7 @@ export const NIVEIS: Record<Qualificacao, NivelInfo> = {
   },
   aurum: {
     key: "aurum",
-    rotulo: "Ouro",
+    rotulo: "Aurum",
     ordem: 1,
     cor: "#E3A81C", // dourado
     texto: "#3D2A00",
