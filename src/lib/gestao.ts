@@ -261,20 +261,13 @@ export async function pedidosEntrada(status: "pendente" | "aprovado" | "recusado
   return (data ?? []) as unknown as PedidoEntrada[];
 }
 
-/** Perfis pendentes que ainda NÃO responderam o questionário. */
-export async function pendentesSemPedido(): Promise<PedidoEntrada["perfil"][]> {
+/** Pendentes que ainda NÃO responderam o questionário, sem os perfis que o
+ *  cadastro automático criou para usuários de outros sistemas do grupo
+ *  (workbook, central, GPS). O filtro mora no banco: rede.pendentes_sem_pedido(). */
+export async function pendentesSemPedido(): Promise<(PedidoEntrada["perfil"] & { origem: string })[]> {
   const supabase = await createClient();
-  const [{ data: perfis }, { data: pedidos }] = await Promise.all([
-    supabase
-      .from("perfis")
-      .select("id, nome, email, whatsapp, profissao, cidade, uf, qualificacao, status, criado_em")
-      .eq("status", "pendente")
-      .order("criado_em", { ascending: true })
-      .limit(300),
-    supabase.from("pedidos_entrada").select("perfil_id").eq("status", "pendente").limit(1000),
-  ]);
-  const com = new Set((pedidos ?? []).map((p) => (p as { perfil_id: string }).perfil_id));
-  return ((perfis ?? []) as PedidoEntrada["perfil"][]).filter((p) => !com.has(p.id));
+  const { data } = await supabase.rpc("pendentes_sem_pedido");
+  return (data ?? []) as (PedidoEntrada["perfil"] & { origem: string })[];
 }
 
 export interface CandidatoBase {

@@ -89,6 +89,7 @@ export default async function EntradaPage({
                 </h2>
                 <p className="mt-1 text-[13px]" style={{ color: C.muted }}>
                   Eles veem o questionário ao entrar. Libere direto só quando souber quem é (equipe, convidado).
+                  Perfis criados automaticamente para usuários do workbook, da central e do GPS ficam fora desta lista.
                 </p>
                 <ul className="mt-2">
                   {semPedido.map((p) => (

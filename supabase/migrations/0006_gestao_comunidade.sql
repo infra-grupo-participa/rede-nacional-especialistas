@@ -25,9 +25,14 @@
 --   * Toda função nova nasce PÚBLICA neste schema (default privileges da 0001).
 --     Por isso cada função recebe REVOKE de public/anon e GRANT explícito.
 --   * "Dia" é sempre o dia civil de São Paulo (America/Sao_Paulo).
---   * search_path inclui `extensions` porque é lá que o Supabase instala o
---     unaccent; sem isso a normalização de texto quebra dentro das funções.
+--   * search_path inclui `extensions` porque é lá que o Supabase costuma
+--     instalar o unaccent (no projeto principal ele está em `public`).
+--   * lock_timeout de 5s: o banco é compartilhado por vários sistemas e esta
+--     migration cria política em storage.objects. Se alguma trava demorar, ela
+--     desiste (e desfaz tudo) em vez de enfileirar e segurar os outros.
 -- ============================================================================
+
+select set_config('lock_timeout', '5s', true);
 
 
 -- ============================================================================
@@ -649,8 +654,9 @@ revoke all on function rede.registrar_acesso() from public, anon;
 grant execute on function rede.registrar_acesso() to authenticated, service_role;
 
 -- Reconstrução do passado: cada dia em que o membro postou, comentou, votou
--- ou escreveu artigo conta como acesso (estimado), e o último login conhecido
--- pelo Supabase Auth também. É o melhor retrato possível antes do rastreio.
+-- ou escreveu artigo conta como acesso (estimado). O last_sign_in_at do
+-- Supabase Auth NÃO entra: auth.users é compartilhado com workbook, central,
+-- GPS e app de membros, e um login lá viraria "último acesso" falso na rede.
 insert into rede.acessos_diarios (perfil_id, dia, n, primeiro_em, ultimo_em, estimado)
 select perfil_id,
        (quando at time zone 'America/Sao_Paulo')::date,
@@ -664,11 +670,6 @@ from (
   union all select perfil_id, criado_em from rede.votos
   union all select autor_id,  criado_em from rede.artigos
   union all select autor_id,  criado_em from rede.artigo_comentarios
-  union all
-  select p.id, u.last_sign_in_at
-  from rede.perfis p
-  join auth.users u on u.id = p.auth_id
-  where u.last_sign_in_at is not null
 ) x
 where quando is not null
 group by perfil_id, (quando at time zone 'America/Sao_Paulo')::date
@@ -802,6 +803,42 @@ $$;
 revoke all on function rede.decidir_pedido(uuid, boolean, text, rede.qualificacao) from public, anon;
 grant execute on function rede.decidir_pedido(uuid, boolean, text, rede.qualificacao) to authenticated;
 
+-- Pendentes que ainda não responderam o questionário, SEM os perfis que o
+-- cadastro automático criou para usuários de outros sistemas do grupo. Em
+-- 30/09/2026 eram 1.057 pendentes, dos quais 967 do workbook (CNHF), 12 da
+-- central e 2 do GPS; só ~30 tinham se cadastrado pela rede.
+create or replace function rede.pendentes_sem_pedido()
+returns table (
+  id           uuid,
+  nome         text,
+  email        text,
+  whatsapp     text,
+  profissao    text,
+  cidade       text,
+  uf           text,
+  qualificacao rede.qualificacao,
+  status       rede.status_perfil,
+  criado_em    timestamptz,
+  origem       text
+)
+language sql stable security definer set search_path = rede, public as $$
+  select p.id, p.nome, p.email, p.whatsapp, p.profissao, p.cidade, p.uf::text,
+         p.qualificacao, p.status, p.criado_em,
+         coalesce(nullif(u.raw_user_meta_data->>'origem', ''), 'sem origem')
+  from rede.perfis p
+  left join auth.users u on u.id = p.auth_id
+  where (select rede.is_rede_admin())
+    and p.status = 'pendente'
+    and not exists (select 1 from rede.pedidos_entrada pe where pe.perfil_id = p.id and pe.status = 'pendente')
+    and coalesce(u.raw_user_meta_data->>'sistema', '') <> 'workbook'
+    and coalesce(u.raw_user_meta_data->>'origem', '') not in ('central', 'gps')
+  order by p.criado_em desc
+  limit 200;
+$$;
+
+revoke all on function rede.pendentes_sem_pedido() from public, anon;
+grant execute on function rede.pendentes_sem_pedido() to authenticated;
+
 
 -- ============================================================================
 -- 10. Cruzamento com a base de alunos (e-mail ou telefone da compra)
@@ -927,7 +964,10 @@ begin
   delete from rede.acessos_diarios where perfil_id = v_de.id;
 
   -- Solta as chaves únicas do perfil de origem antes de passá-las adiante.
-  update rede.perfis set auth_id = null, slug = null where id = v_de.id;
+  -- O slug não pode ir para NULL: o gatilho perfil_slug_guard (produção) o
+  -- regeneraria com a mesma fórmula e o slug colidiria logo abaixo.
+  update rede.perfis set auth_id = null, slug = 'vinculado-' || replace(id::text, '-', '')
+   where id = v_de.id;
 
   -- O que o membro preencheu vence o que veio da base; o nível e o vínculo
   -- comercial (qualificacao, thb_id, plano_thb) são sempre os da base.
@@ -1392,3 +1432,6 @@ comment on column rede.posts.ultima_atividade_em  is 'Criação ou último comen
 comment on table  rede.acessos_diarios            is 'Um registro por membro por dia com acesso logado. Base do primeiro/último acesso e dos inativos.';
 comment on table  rede.pedidos_entrada            is 'Questionário de entrada (perguntas da config) + aceite das regras. Aprovação pela coordenação.';
 comment on table  rede.arquivos                   is 'Aba de arquivos: documentos, imagens, vídeos e links. Bucket privado rede-arquivos.';
+
+-- PostgREST enxerga as tabelas e funções novas sem esperar o próximo reload.
+notify pgrst, 'reload schema';
