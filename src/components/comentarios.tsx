@@ -18,11 +18,16 @@ export function Comentarios({
   logado,
   isAdmin,
   meuPerfilId,
+  travado = false,
+  motivoTrava = "",
 }: {
   postId: string;
   logado: boolean;
   isAdmin: boolean;
   meuPerfilId: string | null;
+  /** comentários travados pela moderação: some o campo (admin ainda comenta). */
+  travado?: boolean;
+  motivoTrava?: string;
 }) {
   const [lista, setLista] = useState<ComentarioFeed[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -179,6 +184,17 @@ export function Comentarios({
         </ul>
       )}
 
+      {travado && (
+        <p className="mt-3 flex items-start gap-2 rounded-xl px-3 py-2.5 text-[13px]" style={{ background: C.paper, color: C.muted }}>
+          <Ico.escudo style={{ width: 15, height: 15, flexShrink: 0, marginTop: 1 }} />
+          <span>
+            Comentários desativados pela moderação{motivoTrava ? `: ${motivoTrava}` : "."}
+            {isAdmin && " Como coordenação, você ainda pode comentar."}
+          </span>
+        </p>
+      )}
+
+      {(!travado || isAdmin) && (
       <form onSubmit={enviar} className="mt-3 flex items-end gap-2">
         <textarea
           value={texto}
@@ -202,6 +218,7 @@ export function Comentarios({
           Enviar
         </button>
       </form>
+      )}
       {erro && (
         <p className="mt-1.5 text-[12px]" style={{ color: "#B4342A" }}>
           {erro}

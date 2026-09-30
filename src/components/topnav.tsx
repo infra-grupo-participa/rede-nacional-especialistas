@@ -47,6 +47,9 @@ export function TopNav({ sessao, voltar }: { sessao: SessaoNav; voltar?: string 
         <LinkNav href="/vitrine" icone={<Ico.mapa style={{ width: 16, height: 16 }} />} rotulo="Vitrine" />
         <LinkNav href="/feed" icone={<Ico.balao style={{ width: 16, height: 16 }} />} rotulo="Feed" />
         <LinkNav href="/artigos" icone={<Ico.doc style={{ width: 16, height: 16 }} />} rotulo="Artigos" />
+        {sessao.aprovado && (
+          <LinkNav href="/arquivos" icone={<Ico.livro style={{ width: 16, height: 16 }} />} rotulo="Arquivos" />
+        )}
       </nav>
 
       <div className="ml-auto flex items-center gap-2">
@@ -186,8 +189,12 @@ function MenuConta({ sessao }: { sessao: SessaoNav }) {
           <ItemMenu icone={<Ico.olho style={{ width: 17, height: 17 }} />} titulo="Meu perfil" onClick={() => { setAberto(false); router.push(sessao.slug ? `/especialista/${sessao.slug}` : "/conta"); }} />
           <ItemMenu icone={<Ico.lapis style={{ width: 16, height: 16 }} />} titulo="Editar perfil" onClick={() => { setAberto(false); router.push("/conta"); }} />
           <ItemMenu icone={<Ico.doc style={{ width: 17, height: 17 }} />} titulo="Meus artigos" onClick={() => { setAberto(false); router.push("/meus-artigos"); }} />
+          {sessao.aprovado && (
+            <ItemMenu icone={<Ico.livro style={{ width: 17, height: 17 }} />} titulo="Arquivos e mídias" onClick={() => { setAberto(false); router.push("/arquivos"); }} />
+          )}
+          <ItemMenu icone={<Ico.escudo style={{ width: 17, height: 17 }} />} titulo="Regras da comunidade" onClick={() => { setAberto(false); router.push("/regras"); }} />
           {sessao.isAdmin && (
-            <ItemMenu icone={<Ico.escudo style={{ width: 17, height: 17 }} />} titulo="Coordenação" onClick={() => { setAberto(false); router.push("/coordenacao"); }} />
+            <ItemMenu icone={<Ico.escudo style={{ width: 17, height: 17 }} />} titulo="Coordenação" sub="Participação, entrada, moderação" onClick={() => { setAberto(false); router.push("/coordenacao"); }} />
           )}
           <div style={{ borderTop: BORDA }} />
           <ItemMenu icone={<Ico.mail style={{ width: 17, height: 17 }} />} titulo="Redefinir senha" sub={msgSenha ?? undefined} onClick={redefinir} pending={pending} />

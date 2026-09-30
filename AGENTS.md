@@ -51,6 +51,36 @@ A home é composta em `src/app/page.tsx` a partir de seções independentes em
   banco). Para migrar, criar `rede.eventos` com as mesmas colunas do tipo `Evento`
   e trocar a constante `AGENDA` por uma query — a UI só consome o tipo.
 
+## Gestão da comunidade (migration 0006, 30/09/2026)
+Substitui o grupo do Facebook. Origem: documento "Comunidade THB no Facebook:
+mapeamento de funcionalidades e necessidades". Tudo na rota `/coordenacao/*`
+(só admin) + o feed.
+
+- **Feed fechado**: posts e comentários só para membro aprovado (RLS 0006).
+  Artigos e vitrine continuam públicos.
+- **Entrada**: cadastro → `/aguardando` com as perguntas de `config_comunidade`
+  + aceite das regras (`rede.pedidos_entrada`) → aprovação em
+  `/coordenacao/entrada`, já escolhendo o nível. Cruzamento com a base de
+  alunos: `candidatos_base()` (e-mail, telefone canônico, nome) e
+  `vincular_a_base()` (o login e o conteúdo passam para o perfil espelhado).
+- **Acesso**: `src/lib/supabase/middleware.ts` chama `registrar_acesso()` no
+  máximo a cada 10 min (cookie `rede_acesso`) → `rede.acessos_diarios`.
+  "Presença" no relatório = acesso OU interação. Antes de
+  `config_comunidade.rastreio_desde` o primeiro acesso é estimado.
+- **Moderação**: palavra de `palavras_moderacao` retém o post (status
+  `pendente`); regra da # (`exigir_hashtag`) trava comentários na criação;
+  fixar/travar pelo escudo no post. Gatilhos: `trg_posts_a_guard` roda antes de
+  `trg_posts_b_moderar` (ordem alfabética, não renomear).
+- **Registro**: `rede.log_moderacao` é imutável e nasce só por gatilho/RPC
+  (`registrar_log`). Toda ação de admin cai nele, inclusive exportação.
+- **Arquivos**: bucket PRIVADO `rede-arquivos`, pasta `<perfil_id>/`, download
+  por URL assinada. Tipos puros em `lib/arquivos-tipos.ts` (componente do
+  navegador não pode importar `lib/arquivos.ts`, que usa `next/headers`).
+- **Tag de nível** voltou a aparecer ao lado do nome (THB inclusive, rótulo
+  "Aurum" em vez de "Ouro"). A faixa de faturamento continua escondida.
+- Sync da base roda todo dia às 03:00 (pg_cron `rede-sync-alunos-thb`, se a
+  extensão existir) e pelo botão em `/coordenacao/entrada`.
+
 ## Regras críticas
 - **NUNCA** commitar `.env.local` nem service_role. Só `NEXT_PUBLIC_*` no cliente.
 - supabase-js configurado com `db: { schema: 'rede' }` e `fetch` com `cache: 'no-store'`
@@ -75,6 +105,8 @@ Push na main → Node App Hostinger (auto-deploy, padrão gps-thb/central-de-pro
 - Componentes portados do MVP original `rede-nacional-especialistas.jsx`.
 
 ## Dívidas conhecidas
+- O realtime dos comentários não reflete a trava ao vivo: quem está com o post
+  aberto só vê a trava ao recarregar (o banco já barra o envio).
 - As views `catalogo_especialistas`, `ranking_autores` e `perfil_stats` são usadas
   em `src/lib/queries.ts` mas **não existem em nenhuma migration** — foram criadas
   direto no Supabase. Antes de mexer nelas, leia o schema real; o repo não é fonte.

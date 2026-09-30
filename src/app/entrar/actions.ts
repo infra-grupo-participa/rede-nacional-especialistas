@@ -21,14 +21,21 @@ export async function entrar(
   if (!senha) return { erro: "Digite sua senha." };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
 
   if (error) {
     return { erro: "E-mail ou senha incorretos." };
   }
 
+  // Quem ainda não foi aprovado vai direto para o questionário de entrada.
+  const { data: perfil } = await supabase
+    .from("perfis")
+    .select("status")
+    .eq("auth_id", data.user.id)
+    .maybeSingle();
+
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect(perfil && (perfil as { status: string }).status !== "aprovado" ? "/aguardando" : "/");
 }
 
 export async function cadastrar(
