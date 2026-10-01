@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { C, F, BORDA } from "@/lib/tokens";
 import Link from "next/link";
 import { CascaMembros } from "@/comunidade/components/casca";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Eyebrow } from "@/comunidade/components/atoms";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
 import { configComunidade } from "@/comunidade/lib/gestao";
@@ -93,9 +94,12 @@ export default async function RegrasPage() {
           <img src="/thb-logo.png" alt="Time Holding Brasil" style={{ height: 38, width: "auto" }} />
           <span style={{ fontFamily: F.serif, fontWeight: 800, fontSize: 15.5, letterSpacing: "-0.015em" }}>Rede de Especialistas</span>
         </Link>
+        <div className="ml-auto">
+          <ThemeToggle />
+        </div>
         <Link
           href={perfil ? "/comunidade/aguardando" : "/comunidade/entrar"}
-          className="press ml-auto rounded-full px-4 text-[14px] font-semibold"
+          className="press rounded-full px-4 text-[14px] font-semibold"
           style={{ height: 38, lineHeight: "38px", background: C.laranja, color: "#0E0E0E" }}
         >
           {perfil ? "Meu pedido de entrada" : "Entrar"}

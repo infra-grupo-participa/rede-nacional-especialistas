@@ -66,7 +66,8 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   e consultas em `src/comunidade/{components,acoes,lib}/**`; estilos com prefixo
   `.rc-` em `src/app/comunidade/comunidade.css`.
 - **Entrada** (referência: telas do Facebook, com a identidade THB):
-  `/comunidade/entrar` (desktop claro em duas colunas, celular escuro),
+  `/comunidade/entrar` (desktop em duas colunas, celular em coluna única; claro
+  por padrão nos dois, escuro só pelo botão de tema, que grava `data-theme`),
   `/comunidade/criar-conta` (no celular começa pelo convite), `/comunidade/recuperar`
   e `/comunidade/nova-senha`. A conta fica lembrada no aparelho
   (`lib/conta-salva.ts`: só nome, foto e e-mail no localStorage, nunca senha)

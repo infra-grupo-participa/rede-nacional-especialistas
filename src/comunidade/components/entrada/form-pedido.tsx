@@ -75,7 +75,7 @@ export function FormPedido({
             checked={aceitou}
             onChange={(e) => setAceitou(e.target.checked)}
             className="mt-0.5 h-5 w-5 shrink-0"
-            style={{ accentColor: "#141210" }}
+            style={{ accentColor: "#FF6B1A" }}
           />
           <span>
             Li e aceito as{" "}
@@ -88,7 +88,7 @@ export function FormPedido({
       </div>
 
       {erro && (
-        <p className="mt-3 text-[13px]" style={{ color: "#B4342A" }} role="alert">
+        <p className="rc-erro-texto mt-3 text-[13px]" role="alert">
           {erro}
         </p>
       )}

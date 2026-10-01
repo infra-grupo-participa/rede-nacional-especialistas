@@ -1,7 +1,18 @@
 import Link from "next/link";
 import { ArteRede } from "@/comunidade/components/entrada/arte";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 /* Peças comuns às telas de entrada da Rede de Especialistas. */
+
+/** Claro ou escuro, no canto da tela. O claro é o padrão; a escolha fica salva
+ *  no aparelho e vale também para dentro da comunidade. */
+export function BotaoTema() {
+  return (
+    <div className="rc-e-tema">
+      <ThemeToggle />
+    </div>
+  );
+}
 
 /** Assinatura da marca no pé do painel (o lugar do "Meta" na referência). */
 export function MarcaTHB() {

@@ -219,7 +219,7 @@ export function Botao({
     "press inline-flex items-center justify-center gap-2 rounded-xl text-[15px] font-semibold transition-opacity";
   const estilos: Record<string, CSSProperties> = {
     // sobre laranja a letra é sempre preta (contraste); whats/contato é preto.
-    primario: { background: C.laranja, color: C.ink },
+    primario: { background: C.laranja, color: "#0E0E0E" },
     whats: { background: C.ink, color: "#fff" },
     secundario: { background: C.surface, color: C.ink, border: BORDA },
     fantasma: { background: "transparent", color: C.ink },

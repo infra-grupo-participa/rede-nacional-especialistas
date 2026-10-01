@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cadastrar, type AuthState } from "@/comunidade/acoes/auth";
 import { ArteRede } from "@/comunidade/components/entrada/arte";
-import { MarcaTHB, RodapeEntrada, SetaVoltar } from "@/comunidade/components/entrada/pecas";
-import { Ico } from "@/components/icons";
+import { BotaoTema, MarcaTHB, RodapeEntrada, SetaVoltar } from "@/comunidade/components/entrada/pecas";
+import { CampoSenha } from "@/comunidade/components/entrada/campo-senha";
 
 /* Criar conta. No celular começa pelo convite ("Participe da Rede") e só
    depois abre o formulário; no desktop o formulário já vem aberto, em coluna
@@ -18,8 +18,6 @@ export function TelaCriarConta() {
   const [nome, setNome] = useState("");
   const [sobrenome, setSobrenome] = useState("");
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [ver, setVer] = useState(false);
   const [estado, acao, pending] = useActionState<AuthState, FormData>(cadastrar, {});
 
   const voltar = () => {
@@ -30,6 +28,7 @@ export function TelaCriarConta() {
 
   return (
     <div className="rc-entrada">
+      <BotaoTema />
       {passo === "convite" && (
         <main className="rc-e-coluna rc-e-convite rc-e-so-celular">
           <Link href="/comunidade/entrar" className="rc-e-voltar" aria-label="Voltar">
@@ -105,23 +104,7 @@ export function TelaCriarConta() {
             <label className="rc-e-rotulo" htmlFor="rc-senha">
               Senha
             </label>
-            <div className="rc-e-campo-olho">
-              <input
-                id="rc-senha"
-                className="rc-e-campo"
-                type={ver ? "text" : "password"}
-                name="senha"
-                placeholder="Senha (mínimo de 6 caracteres)"
-                autoComplete="new-password"
-                minLength={6}
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                required
-              />
-              <button type="button" className="rc-e-olho" onClick={() => setVer((v) => !v)} aria-label={ver ? "Esconder a senha" : "Mostrar a senha"}>
-                {ver ? <Ico.olhoOff style={{ width: 20, height: 20 }} /> : <Ico.olho style={{ width: 20, height: 20 }} />}
-              </button>
-            </div>
+            <CampoSenha id="rc-senha" placeholder="Senha (mínimo de 6 caracteres)" autoComplete="new-password" minLength={6} />
 
             {estado.erro && (
               <p className="rc-e-aviso rc-e-erro" role="alert">

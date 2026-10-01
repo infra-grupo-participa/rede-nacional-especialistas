@@ -1,9 +1,10 @@
 /* ============================================================================
    Rede de Especialistas (v2, sob /comunidade). Tudo com prefixo .rc- para não
    vazar no blog. Duas partes:
-   1. Telas de entrada (.rc-entrada): desktop claro em duas colunas, celular
-      escuro em coluna única. Cores próprias (--e-*), independentes do tema
-      do site: a entrada tem sempre a mesma cara.
+   1. Telas de entrada (.rc-entrada): desktop em duas colunas, celular em
+      coluna única. Cores próprias (--e-*). CLARO por padrão no desktop e no
+      celular; escuro só quando a pessoa escolhe no botão de tema
+      (data-theme="dark" no <html>). Não amarrar o escuro à largura da tela.
    2. Casco da comunidade (.rc-topo, .rc-grupo): segue os tokens do app.
    Regras da marca: laranja é fundo, não texto, sobre claro; sobre laranja a
    letra é sempre preta; sem box-shadow.
@@ -23,12 +24,46 @@
   --e-erro-fundo: #fbedec;
   --e-erro-tinta: #a33f37;
   --e-ok-fundo: #ffeee0;
+  color-scheme: light;
+  position: relative;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--e-fundo);
   color: var(--e-tinta);
   font-family: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Escuro só quando a pessoa escolhe (data-theme no <html>, o mesmo botão do
+   resto do app). Sem escolha, vale o claro acima, no desktop e no celular. */
+:root[data-theme="dark"] .rc-entrada {
+  --e-fundo: #0e0e0e;
+  --e-painel: #161412;
+  --e-tinta: #f4efe8;
+  --e-suave: #a8a29e;
+  --e-linha: #3b3530;
+  --e-campo: #1c1916;
+  --e-acento: #ff8a3d;
+  --e-neutro: #26221f;
+  --e-neutro-tinta: #d9d2c8;
+  --e-erro-fundo: rgba(255, 96, 76, 0.14);
+  --e-erro-tinta: #ff9b8e;
+  --e-ok-fundo: #2a1c12;
+  /* preenchimento automático e controles nativos também no escuro */
+  color-scheme: dark;
+}
+/* no escuro o cartão preto da arte sumiria no fundo: ganha fio e um tom acima */
+:root[data-theme="dark"] .rc-arte-alto {
+  background: #1c1916;
+  outline: 1px solid #3b3530;
+}
+
+/* botão de tema, no canto superior direito de todas as telas de entrada */
+.rc-e-tema {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 3;
 }
 
 .rc-e-palco {
@@ -143,6 +178,12 @@
 }
 .rc-e-campo::placeholder {
   color: var(--e-suave);
+  opacity: 1; /* o ::placeholder global aplica 0.7 e derruba o contraste */
+}
+/* o Edge desenha o próprio olhinho no campo de senha: fica só o nosso */
+.rc-e-campo::-ms-reveal,
+.rc-e-campo::-ms-clear {
+  display: none;
 }
 .rc-e-campo:focus {
   border-color: var(--e-tinta);
@@ -650,7 +691,7 @@
   border-radius: 999px;
   background: #ff6b1a;
   color: #0e0e0e;
-  border: 1cqw solid #faf6ee;
+  border: 1cqw solid var(--e-fundo, #faf6ee);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -696,6 +737,29 @@
 .rc-arte-faixa .rc-arte-niveis {
   background: #fff;
 }
+.rc-arte-faixa .rc-arte-selo {
+  border-color: #ffe2cc;
+}
+
+/* desktop baixo: a engrenagem da conta salva sai da coluna do botão de tema */
+@media (min-width: 900px) and (max-height: 660px) {
+  .rc-e-engrenagem {
+    right: auto;
+    left: 0;
+  }
+  .rc-e-menu {
+    right: auto;
+    left: 0;
+  }
+}
+
+/* erro em texto solto (fora das telas de entrada), legível nos dois temas */
+.rc-erro-texto {
+  color: #b4342a;
+}
+:root[data-theme="dark"] .rc-erro-texto {
+  color: #ff9b8e;
+}
 
 /* ---- desktop estreito: a chamada vai para baixo da arte ---- */
 @media (min-width: 900px) and (max-width: 1239px) {
@@ -719,22 +783,8 @@
   }
 }
 
-/* ---- celular: escuro, coluna única ---- */
+/* ---- celular: coluna única ---- */
 @media (max-width: 899px) {
-  .rc-entrada {
-    --e-fundo: #0e0e0e;
-    --e-painel: #0e0e0e;
-    --e-tinta: #f4efe8;
-    --e-suave: #a8a29e;
-    --e-linha: #3b3530;
-    --e-campo: #161412;
-    --e-acento: #ff8a3d;
-    --e-neutro: #26221f;
-    --e-neutro-tinta: #d9d2c8;
-    --e-erro-fundo: rgba(255, 96, 76, 0.14);
-    --e-erro-tinta: #ff9b8e;
-    --e-ok-fundo: #2a1c12;
-  }
   .rc-e-vitrine,
   .rc-e-rodape,
   .rc-e-so-desktop {
@@ -746,6 +796,7 @@
   .rc-e-painel {
     width: 100%;
     border-left: 0;
+    background: var(--e-fundo);
     justify-content: flex-start;
     padding: 0 20px calc(18px + env(safe-area-inset-bottom));
   }
