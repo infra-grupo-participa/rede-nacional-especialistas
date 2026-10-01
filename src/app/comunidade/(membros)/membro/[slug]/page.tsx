@@ -96,7 +96,8 @@ export default async function MembroPage({ params, searchParams }: Props) {
 
   const onde = lugar(membro);
   const linha = [dados.headline || dados.profissao, onde].filter(Boolean).join(" · ");
-  const fotos = posts.filter((p) => p.imagem_url && p.imagem_url.trim().length > 1);
+  // todas as fotos de cada post, na ordem
+  const fotos = posts.flatMap((p) => p.imagens.map((url) => ({ id: p.id, url })));
   const nome1 = primeiroNome(membro.nome);
 
   return (
@@ -129,9 +130,9 @@ export default async function MembroPage({ params, searchParams }: Props) {
             ) : (
               <div className="rc-perfil-fotos rc-perfil-fotos-todas">
                 {fotos.map((p) => (
-                  <Link key={p.id} href={`/comunidade/post/${p.id}`} aria-label="Abrir o post desta foto">
+                  <Link key={p.url} href={`/comunidade/post/${p.id}`} aria-label="Abrir o post desta foto">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.imagem_url} alt="" loading="lazy" />
+                    <img src={p.url} alt="" loading="lazy" />
                   </Link>
                 ))}
               </div>
@@ -189,9 +190,9 @@ export default async function MembroPage({ params, searchParams }: Props) {
                   </div>
                   <div className="rc-perfil-fotos">
                     {fotos.slice(0, 9).map((p) => (
-                      <Link key={p.id} href={`/comunidade/post/${p.id}`} aria-label="Abrir o post desta foto">
+                      <Link key={p.url} href={`/comunidade/post/${p.id}`} aria-label="Abrir o post desta foto">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={p.imagem_url} alt="" loading="lazy" />
+                        <img src={p.url} alt="" loading="lazy" />
                       </Link>
                     ))}
                   </div>

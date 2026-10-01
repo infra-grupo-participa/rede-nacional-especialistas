@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { SUPABASE_URL } from "@/lib/supabase/config";
+import { imagemDoApp } from "@/comunidade/lib/imagem-do-app";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
 import { corDeCapaValida } from "@/comunidade/lib/perfil-tipos";
 
@@ -56,12 +56,6 @@ const LIMITE: Record<string, number> = {
   facebook: 200,
   site: 200,
 };
-
-/** Imagem de perfil só pode ser a que o próprio app enviou para o Storage. */
-function imagemDoApp(url: string): boolean {
-  if (url === "") return true;
-  return Boolean(SUPABASE_URL) && url.startsWith(`${SUPABASE_URL}/storage/v1/object/public/`) && url.length < 600;
-}
 
 export async function salvarCamposPerfil(campos: CamposPerfil): Promise<PerfilResult> {
   const perfil = await getPerfilAtual();

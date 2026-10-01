@@ -60,21 +60,30 @@ export function SobrePerfil({ dados, ehMeu, secaoInicial }: { dados: DadosPerfil
     setValores(dados);
   }
 
-  const salvar = (campos: CamposPerfil, local: Partial<DadosPerfil>) => {
+  const salvar = (chave: string, campos: CamposPerfil, local: Partial<DadosPerfil>) => {
     setErro(null);
     start(async () => {
-      const r = await salvarCamposPerfil(campos);
-      if (r.erro) {
-        setErro(r.erro);
+      let falha: string | undefined;
+      try {
+        falha = (await salvarCamposPerfil(campos)).erro;
+      } catch {
+        // sem rede ou página antiga depois de uma atualização do site: o que foi digitado fica
+        falha = "Não foi possível salvar. Confira a conexão e tente de novo.";
+      }
+      if (falha) {
+        setErro(falha);
         return;
       }
       setValores((v) => ({ ...v, ...local }));
-      setEditando(null);
+      // fecha só o item que foi salvo
+      setEditando((atual) => (atual === chave ? null : atual));
       router.refresh();
     });
   };
 
   const abrir = (chave: string) => {
+    // um item por vez: enquanto um salva, o outro não abre
+    if (pending) return;
     setErro(null);
     setEditando(chave);
   };
@@ -96,7 +105,7 @@ export function SobrePerfil({ dados, ehMeu, secaoInicial }: { dados: DadosPerfil
           pending={pending}
           erro={erro}
           onCancelar={fechar}
-          onSalvar={(novo) => salvar({ [c.chave]: novo } as CamposPerfil, { [c.chave]: c.chave === "uf" ? novo.toUpperCase() : novo } as Partial<DadosPerfil>)}
+          onSalvar={(novo) => salvar(c.chave, { [c.chave]: novo } as CamposPerfil, { [c.chave]: c.chave === "uf" ? novo.toUpperCase() : novo } as Partial<DadosPerfil>)}
         />
       );
     }
@@ -117,13 +126,13 @@ export function SobrePerfil({ dados, ehMeu, secaoInicial }: { dados: DadosPerfil
               <small>{c.rotulo}</small>
             </>
           ) : (
-            <button type="button" className="rc-sobre-vazio" onClick={() => abrir(c.chave)}>
+            <button type="button" className="rc-sobre-vazio" onClick={() => abrir(c.chave)} disabled={pending}>
               {c.vazio}
             </button>
           )}
         </div>
         {ehMeu && valor && (
-          <button type="button" className="rc-icone-btn rc-sobre-lapis" aria-label={`Editar ${c.rotulo}`} title="Editar" onClick={() => abrir(c.chave)}>
+          <button type="button" className="rc-icone-btn rc-sobre-lapis" aria-label={`Editar ${c.rotulo}`} title="Editar" onClick={() => abrir(c.chave)} disabled={pending}>
             <IcoRC.lapis />
           </button>
         )}
@@ -160,7 +169,7 @@ export function SobrePerfil({ dados, ehMeu, secaoInicial }: { dados: DadosPerfil
               erro={erro}
               onAbrir={() => abrir("destaques")}
               onCancelar={fechar}
-              onSalvar={(lista) => salvar({ destaques: lista }, { destaques: lista })}
+              onSalvar={(lista) => salvar("destaques", { destaques: lista }, { destaques: lista })}
             />
           </section>
         </>
@@ -190,7 +199,7 @@ export function SobrePerfil({ dados, ehMeu, secaoInicial }: { dados: DadosPerfil
               erro={erro}
               onAbrir={() => abrir("especialidades")}
               onCancelar={fechar}
-              onSalvar={(lista) => salvar({ especialidades: lista }, { especialidades: lista })}
+              onSalvar={(lista) => salvar("especialidades", { especialidades: lista }, { especialidades: lista })}
             />
           </section>
         </>

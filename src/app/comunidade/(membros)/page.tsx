@@ -84,7 +84,7 @@ export default async function DiscussaoPage({
             <h2 className="rc-cartao-titulo">Mídia recente</h2>
             <div className="rc-midia-grade">
               {midia.map((m) => (
-                <Link key={m.post_id} href={`/comunidade/post/${m.post_id}`} aria-label="Abrir o post desta foto">
+                <Link key={m.imagem_url} href={`/comunidade/post/${m.post_id}`} aria-label="Abrir o post desta foto">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={m.imagem_url} alt="" loading="lazy" />
                 </Link>

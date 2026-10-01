@@ -6,6 +6,7 @@ import { Avatar, TagNivel, SeloVerificado } from "@/comunidade/components/atoms"
 import { IcoRC } from "@/comunidade/components/icones";
 import { Comentarios, TextoCortado, type ComentariosRef } from "@/comunidade/components/comentarios";
 import { MenuPost, PostAcoes } from "@/comunidade/components/post-acoes";
+import { FotosPost } from "@/comunidade/components/fotos-post";
 import { hrefMembro } from "@/comunidade/lib/grupo-tipos";
 import { tempoRelativo } from "@/lib/utils";
 import type { ComentarioFeed, PostFeed } from "@/comunidade/lib/feed";
@@ -20,6 +21,7 @@ export function PostCard({
   eu,
   pagina = false,
   comentarios,
+  onRemovido,
 }: {
   post: PostFeed;
   eu: Eu;
@@ -27,28 +29,43 @@ export function PostCard({
   pagina?: boolean;
   /** comentários já lidos no servidor (página do post) */
   comentarios?: ComentarioFeed[];
+  /** avisa a lista que este post foi removido (para ela parar de contá-lo) */
+  onRemovido?: (id: string) => void;
 }) {
   const refComentarios = useRef<ComentariosRef>(null);
   const [nComentarios, setNComentarios] = useState(post.n_comentarios);
   const [removido, setRemovido] = useState(false);
   if (removido) return null;
 
-  const hrefAutor = hrefMembro(post.autor);
+  // autor sem perfil visível (membro suspenso ou recusado): o post continua,
+  // sem link para o perfil
+  const autor = post.autor;
+  const nomeAutor = autor?.nome ?? "Membro";
   const hrefPost = `/comunidade/post/${post.id}`;
 
   return (
     <article id={`post-${post.id}`} className="rc-cartao rc-post">
       <header className="rc-post-topo">
-        <Link href={hrefAutor} className="rc-post-avatar" aria-label={`Perfil de ${post.autor.nome}`}>
-          <Avatar nome={post.autor.nome} foto={post.autor.avatar_url} size={40} />
-        </Link>
+        {autor ? (
+          <Link href={hrefMembro(autor)} className="rc-post-avatar" aria-label={`Perfil de ${nomeAutor}`}>
+            <Avatar nome={nomeAutor} foto={autor.avatar_url} size={40} />
+          </Link>
+        ) : (
+          <span className="rc-post-avatar">
+            <Avatar nome={nomeAutor} size={40} />
+          </span>
+        )}
         <div className="rc-post-quem">
           <span className="rc-post-nome-linha">
-            <Link href={hrefAutor} className="rc-post-nome">
-              {post.autor.nome}
-            </Link>
-            {post.autor.verificado && <SeloVerificado size="sm" />}
-            <TagNivel qualificacao={post.autor.qualificacao} size="sm" />
+            {autor ? (
+              <Link href={hrefMembro(autor)} className="rc-post-nome">
+                {nomeAutor}
+              </Link>
+            ) : (
+              <span className="rc-post-nome">{nomeAutor}</span>
+            )}
+            {autor?.verificado && <SeloVerificado size="sm" />}
+            {autor && <TagNivel qualificacao={autor.qualificacao} size="sm" />}
           </span>
           <span className="rc-post-meta">
             <Link href={hrefPost} suppressHydrationWarning>
@@ -61,7 +78,14 @@ export function PostCard({
             )}
           </span>
         </div>
-        <MenuPost post={post} eu={eu} onRemovido={() => setRemovido(true)} />
+        <MenuPost
+          post={post}
+          eu={eu}
+          onRemovido={() => {
+            setRemovido(true);
+            onRemovido?.(post.id);
+          }}
+        />
       </header>
 
       {(post.titulo || post.corpo) && (
@@ -78,18 +102,7 @@ export function PostCard({
         </div>
       )}
 
-      {post.imagem_url &&
-        (pagina ? (
-          <a href={post.imagem_url} target="_blank" rel="noopener noreferrer" className="rc-post-imagem" data-inteira aria-label="Abrir a foto em tamanho real">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={post.imagem_url} alt="" />
-          </a>
-        ) : (
-          <Link href={hrefPost} className="rc-post-imagem" aria-label="Abrir o post">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={post.imagem_url} alt="" loading="lazy" />
-          </Link>
-        ))}
+      <FotosPost fotos={post.imagens} />
 
       <PostAcoes post={post} nComentarios={nComentarios} onComentar={() => refComentarios.current?.comentar()} />
 

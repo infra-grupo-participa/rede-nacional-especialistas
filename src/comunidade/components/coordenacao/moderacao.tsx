@@ -8,6 +8,7 @@ import { Avatar, TagNivel, SeloVerificado } from "@/comunidade/components/atoms"
 import { Ico } from "@/components/icons";
 import { tempoRelativo } from "@/lib/utils";
 import { hrefMembro } from "@/comunidade/lib/grupo-tipos";
+import { fotosGravadas } from "@/comunidade/lib/feed-tipos";
 import { moderarPost } from "@/comunidade/acoes/feed";
 import { adicionarPalavra, removerPalavra } from "@/comunidade/acoes/coordenacao";
 import type { PalavraModeracao, PostRetido } from "@/comunidade/lib/gestao";
@@ -16,6 +17,7 @@ export function CartaoRetido({ post, decidido }: { post: PostRetido; decidido?: 
   const router = useRouter();
   const [pending, start] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
+  const fotos = fotosGravadas(post);
 
   const decidir = (d: "publicado" | "recusado") =>
     start(async () => {
@@ -47,9 +49,16 @@ export function CartaoRetido({ post, decidido }: { post: PostRetido; decidido?: 
         </p>
       )}
       <p className="mt-1 whitespace-pre-wrap text-[14px] leading-relaxed">{post.corpo}</p>
-      {post.imagem_url && post.imagem_url.trim().length > 1 && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.imagem_url} alt="" className="mt-2 rounded-xl" style={{ maxHeight: 220, objectFit: "cover" }} />
+      {fotos.length > 0 && (
+        // todas as fotos, sem desfoque: nenhuma vai ao ar sem ter sido vista
+        <div className="mt-2 grid gap-1.5" style={{ gridTemplateColumns: fotos.length === 1 ? "minmax(0, 320px)" : "repeat(auto-fill, minmax(120px, 1fr))" }}>
+          {fotos.map((url, i) => (
+            <a key={`${url}-${i}`} href={url} target="_blank" rel="noopener noreferrer" aria-label={`Abrir a foto ${i + 1} de ${fotos.length} em tamanho real`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="rounded-xl" style={{ width: "100%", aspectRatio: fotos.length === 1 ? undefined : "1 / 1", maxHeight: fotos.length === 1 ? 220 : undefined, objectFit: "cover" }} />
+            </a>
+          ))}
+        </div>
       )}
       {post.retido_por.length > 0 && (
         <p className="mt-3 flex flex-wrap items-center gap-1.5 text-[12px]" style={{ color: C.muted }}>

@@ -295,6 +295,8 @@ export interface PostRetido {
   titulo: string;
   corpo: string;
   imagem_url: string;
+  /** todas as fotos do post: a coordenação vê cada uma antes de aprovar */
+  imagens: string[];
   retido_por: string[];
   status: string;
   criado_em: string;
@@ -307,7 +309,7 @@ export async function postsPorStatus(status: "pendente" | "recusado", limite = 1
   const { data } = await supabase
     .from("posts")
     .select(
-      `id, titulo, corpo, imagem_url, retido_por, status, criado_em, moderado_em,
+      `id, titulo, corpo, imagem_url, imagens, retido_por, status, criado_em, moderado_em,
        autor:autor_id (id, slug, nome, avatar_url, qualificacao, verificado)`,
     )
     .eq("status", status)

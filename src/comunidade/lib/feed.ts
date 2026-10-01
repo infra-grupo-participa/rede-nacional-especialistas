@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
-import { CAMPOS_COMENTARIO } from "@/comunidade/lib/feed-tipos";
+import { CAMPOS_COMENTARIO, fotosDoPost } from "@/comunidade/lib/feed-tipos";
 import { limparBusca } from "@/comunidade/lib/grupo-tipos";
 import { ehReacao, lerContagem, type ContagemReacoes, type Reacao } from "@/comunidade/lib/reacoes";
 import type { Qualificacao } from "@/comunidade/lib/qualificacoes";
@@ -21,7 +21,10 @@ export interface PostFeed {
   id: string;
   titulo: string;
   corpo: string;
+  /** primeira foto (coluna antiga, mantida pelo banco em acordo com `imagens`). */
   imagem_url: string;
+  /** todas as fotos do post, na ordem (até 10). */
+  imagens: string[];
   score: number;
   n_comentarios: number;
   criado_em: string;
@@ -34,7 +37,9 @@ export interface PostFeed {
   travado_motivo: string;
   /** hashtags extraídas do texto pelo banco, sem o "#" e em minúsculas. */
   hashtags: string[];
-  autor: AutorResumo;
+  /** quem escreveu; `null` quando o perfil do autor não está mais visível
+   *  (membro suspenso ou recusado): o post continua na lista. */
+  autor: AutorResumo | null;
   /** voto do usuário logado neste post: 1, -1 ou 0. */
   meu_voto: number;
   /** contagem de reações por tipo (curtir, amei, risada, uau, triste, raiva). */
@@ -55,11 +60,11 @@ export interface ComentarioFeed {
   autor: AutorResumo;
 }
 
-export { CAMPOS_COMENTARIO } from "@/comunidade/lib/feed-tipos";
+export { CAMPOS_COMENTARIO, fotosDoPost } from "@/comunidade/lib/feed-tipos";
 
 const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, headline, profissao, verificado";
 
-const CAMPOS_POST = `id, titulo, corpo, imagem_url, score, n_comentarios, criado_em,
+const CAMPOS_POST = `id, titulo, corpo, imagem_url, imagens, score, n_comentarios, criado_em,
        ultima_atividade_em, fixado, comentarios_travados, travado_motivo, hashtags, reacoes,
        autor:autor_id (${CAMPOS_AUTOR})`;
 
@@ -74,6 +79,7 @@ function comReacao(p: PostSemVoto, voto: { valor: number; reacao?: unknown } | u
   const valor = voto?.valor ?? 0;
   return {
     ...p,
+    imagens: fotosDoPost(p),
     reacoes: lerContagem(p.reacoes),
     meu_voto: valor,
     minha_reacao: valor > 0 ? (ehReacao(voto?.reacao) ? voto.reacao : "curtir") : null,
@@ -96,11 +102,30 @@ async function comMeusVotos(lista: PostSemVoto[]): Promise<PostFeed[]> {
   return lista.map((p) => comReacao(p, meus.get(p.id)));
 }
 
+/** Último post já mostrado: a data que ordena a lista e o id (desempate). */
+export interface CursorFeed {
+  valor: string;
+  id: string;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** data e hora como o banco devolve (ISO, com fração e fuso) */
+const DATA_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$/;
+
+/** Confere o cursor que vem do navegador antes de ele entrar no filtro. */
+export function cursorValido(c: unknown): c is CursorFeed {
+  if (!c || typeof c !== "object") return false;
+  const { valor, id } = c as Record<string, unknown>;
+  return typeof valor === "string" && DATA_ISO.test(valor) && typeof id === "string" && UUID.test(id);
+}
+
 /** Filtros das listas de posts. */
 export interface FiltroFeed {
   limite?: number;
-  /** quantos posts pular antes de começar (as levas seguintes da Discussão) */
-  pular?: number;
+  /** só o que vem DEPOIS deste post na ordem pedida (as levas seguintes da
+   *  Discussão). Por posição e não por contagem: publicar ou apagar um post no
+   *  meio do caminho não faz a leva seguinte pular nem repetir ninguém. */
+  depois?: CursorFeed;
   /** true inclui os fixados na lista (busca, perfil, meu conteúdo). */
   comFixados?: boolean;
   /** só posts sem nenhum comentário e com comentários abertos ("Perguntas abertas"). */
@@ -115,11 +140,11 @@ export interface FiltroFeed {
 
 /** Feed de posts publicados, com autor e meu voto. A Discussão pede com
  *  `comFixados` (o post em destaque continua na lista, no lugar dele pela
- *  data) e em levas (`limite` + `pular`). */
+ *  data) e em levas (`limite` + `depois`). */
 export async function listarFeed(ordem: OrdemFeed = "novos", filtro: FiltroFeed = {}): Promise<PostFeed[]> {
   const supabase = await createClient();
   const limite = Math.min(Math.max(filtro.limite ?? 40, 1), 100);
-  const pular = Math.max(Math.floor(filtro.pular ?? 0), 0);
+  const coluna = ordem === "atividade" ? "ultima_atividade_em" : "criado_em";
   let consulta = supabase.from("posts").select(CAMPOS_POST).eq("status", "publicado").eq("tipo", "post");
   if (!filtro.comFixados) consulta = consulta.eq("fixado", false);
   if (filtro.semResposta) consulta = consulta.eq("n_comentarios", 0).eq("comentarios_travados", false);
@@ -128,11 +153,15 @@ export async function listarFeed(ordem: OrdemFeed = "novos", filtro: FiltroFeed 
   if (tag) consulta = consulta.contains("hashtags", [tag]);
   const q = limparBusca(filtro.q);
   if (q) consulta = consulta.or(`titulo.ilike.%${q}%,corpo.ilike.%${q}%`);
+  if (filtro.depois && cursorValido(filtro.depois)) {
+    const { valor, id } = filtro.depois;
+    consulta = consulta.or(`${coluna}.lt."${valor}",and(${coluna}.eq."${valor}",id.lt.${id})`);
+  }
   const { data: posts } = await consulta
-    .order(ordem === "atividade" ? "ultima_atividade_em" : "criado_em", { ascending: false })
+    .order(coluna, { ascending: false })
     // desempate estável: sem ele, posts com a mesma data trocam de lugar entre as levas
     .order("id", { ascending: false })
-    .range(pular, pular + limite - 1);
+    .limit(limite);
   return comMeusVotos((posts ?? []) as unknown as PostSemVoto[]);
 }
 

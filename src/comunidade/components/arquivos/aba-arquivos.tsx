@@ -311,7 +311,7 @@ function GradeDeMidia({ arquivos, midias, perfilId, isAdmin, onAdicionar }: { ar
 
   // Fotos dos posts e envios do acervo numa lista só, do mais novo para o mais antigo.
   const itens = useMemo<ItemMidia[]>(() => {
-    const dePosts: ItemMidia[] = midias.map((m) => ({ chave: `p-${m.post_id}`, origem: "post", ehVideo: false, criado_em: m.criado_em, midia: m }));
+    const dePosts: ItemMidia[] = midias.map((m, n) => ({ chave: `p-${m.post_id}-${n}`, origem: "post", ehVideo: false, criado_em: m.criado_em, midia: m }));
     const deArquivos: ItemMidia[] = arquivos.map((a) => ({ chave: `a-${a.id}`, origem: "arquivo", ehVideo: a.tipo === "video", criado_em: a.criado_em, arquivo: a }));
     return [...dePosts, ...deArquivos].sort((x, y) => y.criado_em.localeCompare(x.criado_em));
   }, [arquivos, midias]);

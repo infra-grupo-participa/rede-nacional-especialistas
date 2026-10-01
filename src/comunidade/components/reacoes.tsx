@@ -177,11 +177,17 @@ export function useReacoes(postId: string, minha: Reacao | null, contagem: Conta
     setEstado({ minha: nova, contagem: trocarReacao(anterior.contagem, anterior.minha, nova) });
     const meu = ++pedido.current;
     start(async () => {
-      const r = await reagir(postId, nova);
+      let falha: string | undefined;
+      try {
+        falha = (await reagir(postId, nova)).erro;
+      } catch {
+        // sem rede ou página antiga depois de uma atualização do site
+        falha = "Sem conexão. Tente de novo.";
+      }
       // só desfaz se este ainda é o último pedido (a pessoa pode ter trocado de novo)
-      if (r.erro && pedido.current === meu) {
+      if (falha && pedido.current === meu) {
         setEstado(anterior);
-        setErro(r.erro);
+        setErro(falha);
       }
     });
   };

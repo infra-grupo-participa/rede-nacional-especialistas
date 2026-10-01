@@ -26,6 +26,9 @@ export function urlDaRede(tipo: RedeSocial, valor: string | null | undefined): s
   const limpo = v.replace(/^@/, "").replace(/^\/+/, "");
   if (!limpo || /[\s<>"']/.test(limpo)) return null;
   const caminho = encodeURI(limpo);
+  // endereço da própria rede colado sem o https:// (instagram.com/perfil).
+  // Só os domínios das redes: usuário com ponto ("joao.silva") não é domínio.
+  if (/^(www\.|m\.|[a-z]{2}\.)?(instagram\.com|linkedin\.com|youtube\.com|youtu\.be|tiktok\.com|facebook\.com|fb\.com|fb\.me)(\/|$)/i.test(limpo)) return `https://${caminho}`;
   switch (tipo) {
     case "instagram":
       return `https://www.instagram.com/${caminho}`;

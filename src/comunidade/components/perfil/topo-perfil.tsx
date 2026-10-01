@@ -65,6 +65,8 @@ export function TopoPerfil(p: TopoPerfilProps) {
   const [enviando, setEnviando] = useState<"capa" | "foto" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
+  /** recado depois de publicar (post retido pela moderação ou com comentários travados) */
+  const [aviso, setAviso] = useState<string | null>(null);
   const inputCapa = useRef<HTMLInputElement>(null);
   const inputFoto = useRef<HTMLInputElement>(null);
   const criar = useRef<CriarPostRef>(null);
@@ -93,10 +95,15 @@ export function TopoPerfil(p: TopoPerfilProps) {
   const removerCapa = async () => {
     setErro(null);
     setEnviando("capa");
-    const r = await salvarCamposPerfil({ capa_url: "" });
-    setEnviando(null);
-    if (r.erro) setErro(r.erro);
-    else router.refresh();
+    try {
+      const r = await salvarCamposPerfil({ capa_url: "" });
+      if (r.erro) throw new Error(r.erro);
+      router.refresh();
+    } catch (e) {
+      setErro(e instanceof Error && e.message ? e.message : "Não foi possível remover a capa. Tente de novo.");
+    } finally {
+      setEnviando(null);
+    }
   };
 
   const copiarLink = async () => {
@@ -146,6 +153,8 @@ export function TopoPerfil(p: TopoPerfilProps) {
                       type="button"
                       className="rc-btn rc-perfil-btn-capa"
                       aria-expanded={aberto}
+                      aria-label={enviando === "capa" ? "Enviando a capa" : "Editar foto da capa"}
+                      aria-busy={enviando === "capa" || undefined}
                       onClick={alternar}
                       disabled={enviando !== null}
                     >
@@ -186,6 +195,8 @@ export function TopoPerfil(p: TopoPerfilProps) {
                 <button
                   type="button"
                   className="rc-btn rc-perfil-btn-capa"
+                  aria-label={enviando === "capa" ? "Enviando a capa" : "Adicionar foto da capa"}
+                  aria-busy={enviando === "capa" || undefined}
                   onClick={() => inputCapa.current?.click()}
                   disabled={enviando !== null}
                 >
@@ -281,7 +292,7 @@ export function TopoPerfil(p: TopoPerfilProps) {
                 eu={p.eu}
                 hashtags={p.hashtags}
                 exigirHashtag={p.exigirHashtag}
-                onPublicado={() => router.refresh()}
+                onPublicado={setAviso}
               />
             </div>
           )}
@@ -291,6 +302,21 @@ export function TopoPerfil(p: TopoPerfilProps) {
           <p className="rc-perfil-erro rc-erro-texto" role="alert">
             {erro}
           </p>
+        )}
+
+        {aviso && (
+          <div className="rc-cartao rc-aviso rc-perfil-aviso" role="status">
+            <IcoRC.info />
+            <p>{aviso}</p>
+            <button
+              type="button"
+              className="rc-aviso-fechar"
+              aria-label="Fechar o aviso"
+              onClick={() => setAviso(null)}
+            >
+              <IcoRC.x />
+            </button>
+          </div>
         )}
 
         <div className="rc-perfil-abas-linha">

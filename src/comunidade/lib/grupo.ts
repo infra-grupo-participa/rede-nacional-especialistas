@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { limparBusca, type MembroResumo } from "@/comunidade/lib/grupo-tipos";
+import { fotosDoPost } from "@/comunidade/lib/feed-tipos";
 
 export * from "@/comunidade/lib/grupo-tipos";
 
@@ -139,18 +140,18 @@ export async function atividadeDoGrupo(): Promise<AtividadeGrupo> {
   };
 }
 
-/** Últimas fotos publicadas nos posts (caixa "Mídia recente" da lateral). */
+/** Últimas fotos publicadas nos posts (caixa "Mídia recente" da lateral).
+ *  Post com várias fotos entra com todas, até completar `n`. */
 export async function midiaRecente(n = 4): Promise<{ post_id: string; imagem_url: string }[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("posts")
-    .select("id, imagem_url")
+    .select("id, imagem_url, imagens")
     .eq("status", "publicado")
     .neq("imagem_url", "")
     .order("criado_em", { ascending: false })
     .limit(n * 3);
-  return ((data ?? []) as { id: string; imagem_url: string | null }[])
-    .filter((p) => p.imagem_url && p.imagem_url.trim().length > 1)
-    .slice(0, n)
-    .map((p) => ({ post_id: p.id, imagem_url: p.imagem_url as string }));
+  return ((data ?? []) as { id: string; imagem_url: string | null; imagens: unknown }[])
+    .flatMap((p) => fotosDoPost(p).map((url) => ({ post_id: p.id, imagem_url: url })))
+    .slice(0, n);
 }

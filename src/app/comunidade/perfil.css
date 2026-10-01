@@ -148,6 +148,9 @@
   padding: 0 48px 12px;
   font-size: 14px;
 }
+.rc-perfil-aviso {
+  margin: 0 48px 12px;
+}
 
 /* ---- abas ---- */
 .rc-perfil-abas-linha {
@@ -592,6 +595,14 @@
   .rc-perfil-btn-capa span {
     display: none;
   }
+  /* durante o envio o texto "Enviando…" volta a aparecer */
+  .rc-perfil-btn-capa[aria-busy="true"] {
+    width: auto;
+    padding: 0 12px;
+  }
+  .rc-perfil-btn-capa[aria-busy="true"] span {
+    display: inline;
+  }
   .rc-perfil-ident {
     flex-direction: column;
     align-items: center;
@@ -622,6 +633,9 @@
   .rc-perfil-erro {
     padding: 0 16px 10px;
     text-align: center;
+  }
+  .rc-perfil-aviso {
+    margin: 0 16px 10px;
   }
   .rc-perfil-abas-linha {
     margin: 0 8px;

@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
 import { ehReacao, type Reacao } from "@/comunidade/lib/reacoes";
-import { comPrevias, listarFeed, type OrdemFeed, type PostFeed } from "@/comunidade/lib/feed";
+import { comPrevias, cursorValido, listarFeed, type CursorFeed, type OrdemFeed, type PostFeed } from "@/comunidade/lib/feed";
 import { POSTS_POR_VEZ } from "@/comunidade/lib/feed-tipos";
+import { imagemDoApp, MAX_FOTOS_POST } from "@/comunidade/lib/imagem-do-app";
 
 export type FeedResult = { erro?: string; ok?: boolean; aviso?: string; codigo?: "travado" | "indisponivel" };
 
@@ -16,18 +17,28 @@ const MAX_COMENT = 1000;
 export interface PostInput {
   titulo?: string;
   corpo: string;
+  /** fotos do post, na ordem (até 10) */
+  imagens?: string[];
+  /** forma antiga, de uma foto só */
   imagem_url?: string;
 }
 
 /** Publica um POST (publica direto — sem fila). Título e imagem opcionais. */
 export async function criarPost(input: PostInput | string): Promise<FeedResult> {
-  // compat: aceita string (corpo) ou objeto {titulo, corpo, imagem_url}
+  // compat: aceita string (corpo) ou objeto {titulo, corpo, imagens}
   const dados: PostInput = typeof input === "string" ? { corpo: input } : input;
   const corpo = (dados.corpo || "").trim();
   const titulo = (dados.titulo || "").trim().slice(0, MAX_TITULO);
-  const imagem_url = (dados.imagem_url || "").trim();
+  // fotos: a lista nova ou, por compatibilidade, a foto única
+  const vistas = new Set<string>();
+  const imagens = (Array.isArray(dados.imagens) ? dados.imagens : [dados.imagem_url ?? ""])
+    .filter((u): u is string => typeof u === "string")
+    .map((u) => u.trim())
+    .filter((u) => u && !vistas.has(u) && vistas.add(u));
+  if (imagens.length > MAX_FOTOS_POST) return { erro: `Um post leva até ${MAX_FOTOS_POST} fotos.` };
+  if (!imagens.every(imagemDoApp)) return { erro: "Foto inválida. Envie a foto de novo." };
 
-  if (!corpo && !imagem_url && !titulo)
+  if (!corpo && imagens.length === 0 && !titulo)
     return { erro: "Escreva algo antes de publicar." };
   if (corpo.length > MAX_POST) return { erro: "Post muito longo." };
 
@@ -41,7 +52,8 @@ export async function criarPost(input: PostInput | string): Promise<FeedResult> 
   // o post (status 'pendente') e a regra da # pode travar os comentários.
   const { data, error } = await supabase
     .from("posts")
-    .insert({ autor_id: perfil.id, tipo: "post", status: "publicado", titulo, corpo, imagem_url })
+    // o banco preenche imagem_url com a primeira foto da lista
+    .insert({ autor_id: perfil.id, tipo: "post", status: "publicado", titulo, corpo, imagens })
     .select("status, comentarios_travados")
     .single();
 
@@ -96,14 +108,19 @@ export async function votar(postId: string, valor: 1 | -1): Promise<FeedResult> 
   return { ok: true };
 }
 
-/** Próxima leva de posts da Discussão ("ver mais" / rolagem). Só para membro
- *  aprovado; a RLS garante o mesmo no banco. */
-export async function maisPosts(ordem: OrdemFeed, pular: number): Promise<{ posts: PostFeed[]; acabou: boolean; erro?: string }> {
+/** Próxima leva de posts da Discussão ("ver mais" / rolagem): os que vêm depois
+ *  do último post já mostrado. Só para membro aprovado; a RLS garante o mesmo
+ *  no banco. */
+export async function maisPosts(ordem: OrdemFeed, depois: CursorFeed): Promise<{ posts: PostFeed[]; acabou: boolean; erro?: string }> {
   const perfil = await getPerfilAtual();
   if (!perfil || perfil.status !== "aprovado") return { posts: [], acabou: true, erro: "Entre para ver os posts." };
-  const inicio = Number.isFinite(pular) ? Math.min(Math.max(Math.floor(pular), 0), 20000) : 0;
+  if (!cursorValido(depois)) return { posts: [], acabou: false, erro: "Não foi possível carregar mais posts. Atualize a página." };
   const posts = await comPrevias(
-    await listarFeed(ordem === "atividade" ? "atividade" : "novos", { comFixados: true, limite: POSTS_POR_VEZ, pular: inicio }),
+    await listarFeed(ordem === "atividade" ? "atividade" : "novos", {
+      comFixados: true,
+      limite: POSTS_POR_VEZ,
+      depois: { valor: depois.valor, id: depois.id },
+    }),
   );
   return { posts, acabou: posts.length < POSTS_POR_VEZ };
 }

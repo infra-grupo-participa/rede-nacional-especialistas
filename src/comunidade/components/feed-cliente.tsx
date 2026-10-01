@@ -53,20 +53,50 @@ export function FeedCliente({
   const [acabou, setAcabou] = useState(posts.length < POSTS_POR_VEZ);
   const [carregando, setCarregando] = useState(false);
   const [erroMais, setErroMais] = useState<string | null>(null);
+  const [removidos, setRemovidos] = useState<ReadonlySet<string>>(() => new Set());
   const ocupado = useRef(false);
   const sentinela = useRef<HTMLDivElement>(null);
 
+  // A primeira leva foi renovada: o que saiu dela (empurrado por um post novo)
+  // passa para as levas seguintes, para nada sumir do meio da lista. Ajuste de
+  // estado durante o render, sem effect.
+  const [primeira, setPrimeira] = useState(posts);
+  if (primeira !== posts) {
+    const agora = new Set(posts.map((p) => p.id));
+    const sairam = primeira.filter((p) => !agora.has(p.id) && !removidos.has(p.id));
+    setPrimeira(posts);
+    if (sairam.length > 0) {
+      setExtras((atual) => {
+        const tenho = new Set(atual.map((p) => p.id));
+        return [...sairam.filter((p) => !tenho.has(p.id)), ...atual];
+      });
+    } else if (extras.length === 0) {
+      // o grupo pode ter passado de uma leva enquanto a página estava aberta
+      setAcabou(posts.length < POSTS_POR_VEZ);
+    }
+  }
+
   const naPrimeira = new Set(posts.map((p) => p.id));
-  const lista = [...posts, ...extras.filter((p) => !naPrimeira.has(p.id))];
+  const lista = [...posts, ...extras.filter((p) => !naPrimeira.has(p.id))].filter((p) => !removidos.has(p.id));
   const total = lista.length;
+  // a leva seguinte começa depois do último post mostrado (posição, não contagem)
+  const ultimo = lista[lista.length - 1];
+  const depoisValor = ultimo ? (ordem === "atividade" ? ultimo.ultima_atividade_em : ultimo.criado_em) : null;
+  const depoisId = ultimo?.id ?? null;
+
+  /** Post removido: sai da lista e da conta na hora. */
+  const aoRemover = useCallback((id: string) => {
+    setRemovidos((r) => new Set(r).add(id));
+    setExtras((atual) => atual.filter((p) => p.id !== id));
+  }, []);
 
   const carregarMais = useCallback(async () => {
-    if (ocupado.current) return;
+    if (ocupado.current || !depoisValor || !depoisId) return;
     ocupado.current = true;
     setCarregando(true);
     setErroMais(null);
     try {
-      const r = await maisPosts(ordem, total);
+      const r = await maisPosts(ordem, { valor: depoisValor, id: depoisId });
       if (r.erro) setErroMais(r.erro);
       else {
         setExtras((atual) => {
@@ -81,7 +111,7 @@ export function FeedCliente({
       ocupado.current = false;
       setCarregando(false);
     }
-  }, [ordem, total]);
+  }, [ordem, depoisValor, depoisId]);
 
   // rolagem: chegando perto do fim da lista, busca a próxima leva sozinho
   useEffect(() => {
@@ -112,7 +142,7 @@ export function FeedCliente({
         <div className="rc-compor-atalhos">
           <button type="button" className="rc-btn rc-btn-fantasma" onClick={() => criar.current?.abrir("foto")}>
             <IcoRC.imagem />
-            <span>Foto</span>
+            <span>Fotos</span>
           </button>
           <button type="button" className="rc-btn rc-btn-fantasma" onClick={() => criar.current?.abrir("hashtag")}>
             <IcoRC.hashtag />
@@ -189,7 +219,7 @@ export function FeedCliente({
       </div>
 
       <div className="rc-feed-lista" data-trocando={trocando || undefined} aria-busy={trocando}>
-        <ListaPosts posts={lista} eu={eu} vazio="Ainda não há posts. Seja o primeiro a publicar." />
+        <ListaPosts posts={lista} eu={eu} vazio="Ainda não há posts. Seja o primeiro a publicar." onRemovido={aoRemover} />
         {!acabou && (
           <div ref={sentinela} className="rc-feed-mais">
             {erroMais && (

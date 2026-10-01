@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { BUCKET_ARQUIVOS, type Arquivo, type MidiaPost } from "@/comunidade/lib/arquivos-tipos";
+import { fotosDoPost } from "@/comunidade/lib/feed";
 
 export * from "@/comunidade/lib/arquivos-tipos";
 
@@ -30,12 +31,13 @@ export async function listarArquivos(): Promise<Arquivo[]> {
   return lista;
 }
 
-/** Fotos publicadas nos posts do feed (a parte "mídias" da aba). */
+/** Fotos publicadas nos posts do feed (a parte "mídias" da aba). Post com
+ *  várias fotos entra com todas, na ordem. */
 export async function midiasDosPosts(limite = 120): Promise<MidiaPost[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("posts")
-    .select("id, imagem_url, titulo, corpo, criado_em, autor:autor_id (nome)")
+    .select("id, imagem_url, imagens, titulo, corpo, criado_em, autor:autor_id (nome)")
     .eq("status", "publicado")
     .neq("imagem_url", "")
     .order("criado_em", { ascending: false })
@@ -43,17 +45,18 @@ export async function midiasDosPosts(limite = 120): Promise<MidiaPost[]> {
   return ((data ?? []) as unknown as {
     id: string;
     imagem_url: string;
+    imagens: unknown;
     titulo: string;
     corpo: string;
     criado_em: string;
     autor: { nome: string } | null;
-  }[])
-    .filter((p) => p.imagem_url && p.imagem_url.trim().length > 1)
-    .map((p) => ({
+  }[]).flatMap((p) =>
+    fotosDoPost(p).map((url) => ({
       post_id: p.id,
-      imagem_url: p.imagem_url,
+      imagem_url: url,
       titulo: p.titulo || p.corpo.slice(0, 80),
       criado_em: p.criado_em,
       autor: p.autor?.nome ?? "",
-    }));
+    })),
+  );
 }

@@ -12,12 +12,15 @@ export function ListaPosts({
   posts,
   eu,
   vazio,
+  onRemovido,
 }: {
   posts: PostFeed[];
   /** quem está olhando (`euDe(perfil)`) */
   eu: Eu;
   /** frase mostrada quando não há post */
   vazio?: string;
+  /** chamado com o id quando um post da lista é removido */
+  onRemovido?: (id: string) => void;
 }) {
   if (posts.length === 0) {
     return vazio ? <p className="rc-cartao rc-vazio">{vazio}</p> : null;
@@ -25,7 +28,7 @@ export function ListaPosts({
   return (
     <div className="rc-lista-posts">
       {posts.map((p) => (
-        <PostCard key={p.id} post={p} eu={eu} />
+        <PostCard key={p.id} post={p} eu={eu} onRemovido={onRemovido} />
       ))}
     </div>
   );

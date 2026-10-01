@@ -9,6 +9,8 @@ import { BotaoReagir, ResumoReacoes, useReacoes } from "@/comunidade/components/
 import type { PostFeed } from "@/comunidade/lib/feed";
 import type { Eu } from "@/comunidade/lib/sessao";
 
+const SEM_CONEXAO = "Sem conexão. Tente de novo.";
+
 /** Endereço do post para copiar e mandar a um colega (só membro abre). */
 function linkDoPost(postId: string): string {
   return `${window.location.origin}/comunidade/post/${postId}`;
@@ -104,13 +106,19 @@ export function MenuPost({
   const [erro, setErro] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
   const [pending, start] = useTransition();
-  const souAutor = eu.perfilId === post.autor.id;
+  const souAutor = eu.perfilId === post.autor?.id;
 
   const executar = (fn: () => Promise<{ erro?: string }>, fechar: () => void) =>
     start(async () => {
       setErro(null);
-      const r = await fn();
-      if (r.erro) setErro(r.erro);
+      let falha: string | undefined;
+      try {
+        falha = (await fn()).erro;
+      } catch {
+        // sem rede ou página antiga depois de uma atualização do site
+        falha = SEM_CONEXAO;
+      }
+      if (falha) setErro(falha);
       else {
         fechar();
         router.refresh();
@@ -131,9 +139,14 @@ export function MenuPost({
     if (!confirm("Remover este post?")) return;
     start(async () => {
       setErro(null);
-      const r = await apagarPost(post.id);
-      if (r.erro) {
-        setErro(r.erro);
+      let falha: string | undefined;
+      try {
+        falha = (await apagarPost(post.id)).erro;
+      } catch {
+        falha = SEM_CONEXAO;
+      }
+      if (falha) {
+        setErro(falha);
         return;
       }
       fechar();
