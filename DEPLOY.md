@@ -47,6 +47,9 @@ NEXT_PUBLIC_SUPABASE_SCHEMA=rede
   isso. O Turbopack continua disponível em `npm run build:turbopack` para voltar quando
   a Hostinger normalizar. O webpack valida os exports de `page.tsx`: não exporte nada
   além do componente e das configs de rota.
+- **O gatilho automático falha às vezes.** Em 01/10 três pushes seguidos publicaram em
+  ~100 s e o quarto (a reversão, PR #7) não publicou. Se nada mudar em 3 minutos, um novo
+  push ou o botão Reimplantar do hPanel resolve.
 - **Como saber se o deploy entrou:** o push na `main` publica em menos de 1 minuto (em
   04/08 foram 37 s). Confira uma rota nova ou o nome do CSS em `/_next/static/`. Se nada
   mudar, olhe o log de Deployments do Node App no hPanel.
