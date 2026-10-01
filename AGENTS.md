@@ -51,26 +51,46 @@ A home é composta em `src/app/page.tsx` a partir de seções independentes em
   banco). Para migrar, criar `rede.eventos` com as mesmas colunas do tipo `Evento`
   e trocar a constante `AGENDA` por uma query — a UI só consome o tipo.
 
-## Comunidade (v2): fora da `main`, no branch `v2`
+## Rede de Especialistas (v2): tudo sob `/comunidade`
 Entre 30/09 e 01/10/2026 a gestão da comunidade (feed fechado, questionário de
 entrada, moderação, relatório por aluno, arquivos, selo de verificado, trava de
-comentários ao vivo) foi publicada por engano em cima deste site. O PO queria uma
-**v2 separada**: a Rede de Especialistas é um produto diferente do blog. Em
-02/10/2026 o código do site voltou ao que era em 04/08 (`482c88f`).
+comentários ao vivo) foi publicada por engano em cima do blog. O PO queria uma
+**v2 separada**: a Rede de Especialistas é um produto diferente do blog, "um
+Facebook do THB". Em 01/10/2026 o blog voltou ao que era em 04/08 (`482c88f`) e
+a comunidade passou a morar em `/comunidade`, neste mesmo app.
 
-- **O código da comunidade está no branch `v2`** (commit `c5c2bbd`). A v2 vai
-  morar em `/comunidade`, neste mesmo app: tela de login própria e, ao entrar, o
-  feed com cara de grupo. **Não publicar nada de comunidade fora de `/comunidade`.**
-- **O banco ficou com as migrations 0006, 0007 e 0008 aplicadas** (arquivos em
-  `supabase/migrations/`). Elas são aditivas e o site antigo roda em cima delas.
-  Efeitos que valem para este site: posts e comentários só são lidos por membro
-  aprovado (o `/feed` aparece vazio para visitante), o dono do perfil não grava
-  `certificado`/`thb_id`/`plano_thb`, e o Realtime está ligado em
+- **Não publicar nada de comunidade fora de `/comunidade`**, e não usar a
+  navegação do blog (`TopNav`) lá dentro. O branch `v2` (`c5c2bbd`) guarda a
+  versão antiga, com as rotas na raiz, só como histórico.
+- **Onde está o código:** rotas em `src/app/comunidade/**`; componentes, ações
+  e consultas em `src/comunidade/{components,acoes,lib}/**`; estilos com prefixo
+  `.rc-` em `src/app/comunidade/comunidade.css`.
+- **Entrada** (referência: telas do Facebook, com a identidade THB):
+  `/comunidade/entrar` (desktop claro em duas colunas, celular escuro),
+  `/comunidade/criar-conta` (no celular começa pelo convite), `/comunidade/recuperar`
+  e `/comunidade/nova-senha`. A conta fica lembrada no aparelho
+  (`lib/conta-salva.ts`: só nome, foto e e-mail no localStorage, nunca senha)
+  e a entrada oferece "Continuar" ou "Usar outro perfil".
+- **Depois do login** a pessoa cai em `/comunidade`: barra do topo, cabeçalho do
+  grupo (capa, "Grupo privado · N membros", abas) e a Discussão. O grupo
+  `(membros)` exige membro aprovado (`exigirMembro()`); quem não é aprovado vai
+  para `/comunidade/aguardando` (questionário). A coordenação é uma aba do grupo.
+- **Banco:** migrations 0006, 0007 e 0008 aplicadas (arquivos em
+  `supabase/migrations/`). Posts e comentários só são lidos por membro aprovado
+  (o `/feed` antigo do blog aparece vazio para visitante), o dono do perfil não
+  grava `certificado`/`thb_id`/`plano_thb`, e o Realtime está ligado em
   `rede.posts`, `rede.comentarios` e `rede.artigo_comentarios`.
-- Da leva de 01/10 ficaram só duas correções do link de redefinição de senha
-  (`URL_CONFIRMAR_AUTH` em `lib/supabase/config.ts` e `/auth/confirmar`): atrás do
-  Passenger o `request.url` vem como `https://0.0.0.0:3000` e o link nunca
-  funcionou; e o projeto Supabase é compartilhado, com Site URL do SIP.
+- **Único ponto compartilhado com o blog:** `lib/supabase/middleware.ts`
+  registra o acesso (`registrar_acesso`) só em rota `/comunidade`.
+- **Nova senha:** a comunidade tem a própria rota de confirmação,
+  `/comunidade/auth/confirmar` (o blog segue com `/auth/confirmar`). O modelo
+  do e-mail de recuperação no Supabase tem um ramo para cada `redirectTo`
+  (`URL_CONFIRMAR_AUTH` e `URL_CONFIRMAR_COMUNIDADE`); qualquer outro valor cai
+  no `ConfirmationURL`, que leva ao SIP. Atrás do Passenger o `request.url` vem
+  como `https://0.0.0.0:3000`: nunca montar URL absoluta a partir dele (ver
+  `origemPublica`).
+- Pendente na v2: perfil do membro dentro da comunidade (os nomes ainda levam
+  para `/especialista/...`, que é página do blog) e a aba de membros.
 
 ## Regras críticas
 - **NUNCA** commitar `.env.local` nem service_role. Só `NEXT_PUBLIC_*` no cliente.

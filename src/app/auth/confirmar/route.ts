@@ -20,7 +20,15 @@ function origemPublica(request: NextRequest): string {
 
 /** Só caminho interno: evita que ?next= vire redirecionamento para outro site. */
 function caminhoSeguro(next: string | null): string {
-  return next && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/";
+  if (!next || !next.startsWith("/")) return "/";
+  // Valida DEPOIS de resolver: "/<TAB>/outro.site" passa num teste de texto e
+  // o new URL() descarta o TAB, virando endereço de outro site.
+  try {
+    const u = new URL(next, ORIGEM_DO_SITE);
+    return u.origin === ORIGEM_DO_SITE ? u.pathname + u.search + u.hash : "/";
+  } catch {
+    return "/";
+  }
 }
 
 /* Confirmação de e-mail. O link do e-mail (modelo de recuperação do Supabase,

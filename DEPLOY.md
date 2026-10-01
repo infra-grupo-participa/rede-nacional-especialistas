@@ -35,7 +35,7 @@ NEXT_PUBLIC_SUPABASE_SCHEMA=rede
   domínio de produção, senão os links de auth voltam para localhost.
 - O cron do espelho da base de alunos (`select rede.sync_alunos_thb();`) é criado pela
   migration 0006 (job `rede-sync-alunos-thb`, 03:00 de Brasília) quando o pg_cron existe.
-  Sem pg_cron, agendar à mão ou usar o botão em `/coordenacao/entrada`.
+  Sem pg_cron, agendar à mão ou usar o botão em `/comunidade/coordenacao/entrada`.
 
 ## Notas
 
