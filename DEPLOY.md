@@ -39,6 +39,18 @@ NEXT_PUBLIC_SUPABASE_SCHEMA=rede
 
 ## Notas
 
+- **Build com webpack (desde 01/10/2026).** `npm run build` roda `next build --webpack`.
+  Desde 29/09/2026 ~13:30 UTC todo build com Turbopack na Hostinger cai no PostCSS com
+  "node process exited before we could connect to it" (visto também no gps-thb, commit
+  e1f599c, e no sistema-grupo-participa-v2). Quando o build falha, a Hostinger mantém o
+  build anterior no ar e **não avisa**: o push de 30/09 (PR #2) ficou sem publicar por
+  isso. O Turbopack continua disponível em `npm run build:turbopack` para voltar quando
+  a Hostinger normalizar. O webpack valida os exports de `page.tsx`: não exporte nada
+  além do componente e das configs de rota.
+- **Como saber se o deploy entrou:** o push na `main` publica em menos de 1 minuto (em
+  04/08 foram 37 s). Confira uma rota nova ou o nome do CSS em `/_next/static/`. Se nada
+  mudar, olhe o log de Deployments do Node App no hPanel.
+
 - `output: standalone` foi **removido** do `next.config.ts` de propósito: ele conflita
   com o `server.js` custom (o Next avisa e ignora o `next start`). Sem standalone, o
   `server.js` funciona como esperado — igual ao gps-thb.
