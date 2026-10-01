@@ -97,6 +97,9 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   grupo: texto em blocos separados por linha em branco, primeira linha é o
   título (`lib/regras.ts`). Só entra botão que funciona: Guias, Eventos,
   notificações, Messenger e afins do Facebook ficaram de fora de propósito.
+  A Discussão carrega em levas de 20 (`POSTS_POR_VEZ`, rolagem ou "Ver mais
+  posts") e o post em destaque continua na lista, nos dois filtros, além de
+  aparecer em "Em destaque" (pedido do PO: nada some do feed).
 - **Tema:** claro é o padrão em todas as telas; o escuro vem só de
   `data-theme="dark"` (botão de tema). Nunca amarrar tema à largura da tela.
 - **Nada dentro da comunidade leva ao blog**, exceto o item "Blog do Time

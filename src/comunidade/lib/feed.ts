@@ -99,6 +99,8 @@ async function comMeusVotos(lista: PostSemVoto[]): Promise<PostFeed[]> {
 /** Filtros das listas de posts. */
 export interface FiltroFeed {
   limite?: number;
+  /** quantos posts pular antes de começar (as levas seguintes da Discussão) */
+  pular?: number;
   /** true inclui os fixados na lista (busca, perfil, meu conteúdo). */
   comFixados?: boolean;
   /** só posts sem nenhum comentário e com comentários abertos ("Perguntas abertas"). */
@@ -111,10 +113,13 @@ export interface FiltroFeed {
   q?: string;
 }
 
-/** Feed de posts publicados, com autor e meu voto. Sem filtro, é a Discussão
- *  (os fixados vêm à parte, em `listarFixados`). */
+/** Feed de posts publicados, com autor e meu voto. A Discussão pede com
+ *  `comFixados` (o post em destaque continua na lista, no lugar dele pela
+ *  data) e em levas (`limite` + `pular`). */
 export async function listarFeed(ordem: OrdemFeed = "novos", filtro: FiltroFeed = {}): Promise<PostFeed[]> {
   const supabase = await createClient();
+  const limite = Math.min(Math.max(filtro.limite ?? 40, 1), 100);
+  const pular = Math.max(Math.floor(filtro.pular ?? 0), 0);
   let consulta = supabase.from("posts").select(CAMPOS_POST).eq("status", "publicado").eq("tipo", "post");
   if (!filtro.comFixados) consulta = consulta.eq("fixado", false);
   if (filtro.semResposta) consulta = consulta.eq("n_comentarios", 0).eq("comentarios_travados", false);
@@ -125,7 +130,9 @@ export async function listarFeed(ordem: OrdemFeed = "novos", filtro: FiltroFeed 
   if (q) consulta = consulta.or(`titulo.ilike.%${q}%,corpo.ilike.%${q}%`);
   const { data: posts } = await consulta
     .order(ordem === "atividade" ? "ultima_atividade_em" : "criado_em", { ascending: false })
-    .limit(filtro.limite ?? 40);
+    // desempate estável: sem ele, posts com a mesma data trocam de lugar entre as levas
+    .order("id", { ascending: false })
+    .range(pular, pular + limite - 1);
   return comMeusVotos((posts ?? []) as unknown as PostSemVoto[]);
 }
 

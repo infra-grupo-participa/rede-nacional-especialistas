@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { comPrevias, listarFeed, listarFixados, meusPostsRetidos, type OrdemFeed } from "@/comunidade/lib/feed";
+import { POSTS_POR_VEZ } from "@/comunidade/lib/feed-tipos";
 import { exigirMembro, euDe } from "@/comunidade/lib/sessao";
 import { configComunidade } from "@/comunidade/lib/gestao";
 import { GRUPO, midiaRecente } from "@/comunidade/lib/grupo";
@@ -17,7 +18,8 @@ function resumo(texto: string, limite = 132): { trecho: string; cortou: boolean 
 }
 
 /* Discussão: a primeira coisa que o membro vê ao entrar. À esquerda, escrever,
-   posts em destaque e o feed (novos posts ou atividade recente); à direita, o
+   posts em destaque e o feed (novos posts ou atividade recente, em levas que
+   continuam ao rolar; o post em destaque também fica na lista); à direita, o
    "Sobre" e a "Mídia recente", como no grupo do Facebook. */
 export default async function DiscussaoPage({
   searchParams,
@@ -29,7 +31,7 @@ export default async function DiscussaoPage({
   const perfil = await exigirMembro();
 
   const [posts, fixados, config, retidos, midia] = await Promise.all([
-    listarFeed(ordem).then(comPrevias),
+    listarFeed(ordem, { comFixados: true, limite: POSTS_POR_VEZ }).then(comPrevias),
     listarFixados().then(comPrevias),
     configComunidade(),
     meusPostsRetidos(perfil.id),
@@ -41,6 +43,7 @@ export default async function DiscussaoPage({
   return (
     <main className="rc-discussao">
       <FeedCliente
+        key={ordem}
         posts={posts}
         fixados={fixados}
         ordem={ordem}

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
 import { ehReacao, type Reacao } from "@/comunidade/lib/reacoes";
+import { comPrevias, listarFeed, type OrdemFeed, type PostFeed } from "@/comunidade/lib/feed";
+import { POSTS_POR_VEZ } from "@/comunidade/lib/feed-tipos";
 
 export type FeedResult = { erro?: string; ok?: boolean; aviso?: string; codigo?: "travado" | "indisponivel" };
 
@@ -92,6 +94,18 @@ export async function votar(postId: string, valor: 1 | -1): Promise<FeedResult> 
 
   revalidatePath("/comunidade");
   return { ok: true };
+}
+
+/** Próxima leva de posts da Discussão ("ver mais" / rolagem). Só para membro
+ *  aprovado; a RLS garante o mesmo no banco. */
+export async function maisPosts(ordem: OrdemFeed, pular: number): Promise<{ posts: PostFeed[]; acabou: boolean; erro?: string }> {
+  const perfil = await getPerfilAtual();
+  if (!perfil || perfil.status !== "aprovado") return { posts: [], acabou: true, erro: "Entre para ver os posts." };
+  const inicio = Number.isFinite(pular) ? Math.min(Math.max(Math.floor(pular), 0), 20000) : 0;
+  const posts = await comPrevias(
+    await listarFeed(ordem === "atividade" ? "atividade" : "novos", { comFixados: true, limite: POSTS_POR_VEZ, pular: inicio }),
+  );
+  return { posts, acabou: posts.length < POSTS_POR_VEZ };
 }
 
 /** Reage a um post (Curtir, Amei, Risada, Uau, Triste, Raiva). Cada membro tem
