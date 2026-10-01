@@ -8,6 +8,7 @@ import { configComunidade } from "@/comunidade/lib/gestao";
 import { FormPedido } from "@/comunidade/components/entrada/form-pedido";
 import { PedidoEnviado } from "@/comunidade/components/entrada/pedido-enviado";
 import { LembrarConta } from "@/comunidade/components/topo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -59,9 +60,12 @@ export default async function AguardandoPage() {
 
   return (
     <main
-      className="flex min-h-[100dvh] flex-col items-center justify-center px-5 py-10 text-center"
+      className="relative flex min-h-[100dvh] flex-col items-center justify-center px-5 py-10 text-center"
       style={{ background: C.fundo, color: C.ink }}
     >
+      <div className="absolute right-4 top-3.5">
+        <ThemeToggle />
+      </div>
       <div className="w-full" style={{ maxWidth: precisaResponder || pedido ? 520 : 440 }}>
         <p
           className="uppercase"

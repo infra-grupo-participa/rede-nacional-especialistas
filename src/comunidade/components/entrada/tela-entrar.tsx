@@ -4,14 +4,16 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { entrar, type AuthState } from "@/comunidade/acoes/auth";
 import { removerConta, useContaSalva, type ContaSalva } from "@/comunidade/lib/conta-salva";
-import { MarcaTHB, RodapeEntrada, SetaVoltar, VitrineMarca } from "@/comunidade/components/entrada/pecas";
+import { BotaoTema, MarcaTHB, RodapeEntrada, SetaVoltar, VitrineMarca } from "@/comunidade/components/entrada/pecas";
+import { CampoSenha } from "@/comunidade/components/entrada/campo-senha";
 import { iniciais } from "@/lib/utils";
 
 /* Tela de entrada da Rede de Especialistas. Três estados no mesmo painel:
    - comum: e-mail e senha;
    - conta salva: foto, nome, "Continuar" e "Usar outro perfil";
    - senha da conta salva: depois de "Continuar", só a senha.
-   Desktop: marca à esquerda e painel à direita. Celular: coluna única escura. */
+   Desktop: marca à esquerda e painel à direita. Celular: coluna única.
+   Claro por padrão; o botão do canto troca para o escuro. */
 
 type Modo = "auto" | "outro" | "senha";
 
@@ -129,7 +131,7 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
           </p>
           <input type="hidden" name="email" value={senhaDe.email} />
           <div className="rc-e-pilha">
-            <input className="rc-e-campo" type="password" name="senha" placeholder="Senha" aria-label="Senha" autoComplete="current-password" autoFocus required />
+            <CampoSenha autoFocus />
             <button type="submit" className="rc-e-botao rc-e-primario" disabled={pending}>
               {pending ? "Entrando…" : "Entrar"}
             </button>
@@ -172,7 +174,7 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <input className="rc-e-campo" type="password" name="senha" placeholder="Senha" aria-label="Senha" autoComplete="current-password" required />
+            <CampoSenha />
             <button type="submit" className="rc-e-botao rc-e-primario" disabled={pending} style={{ marginTop: 6 }}>
               {pending ? "Entrando…" : "Entrar"}
             </button>
@@ -193,6 +195,7 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
 
   return (
     <div className="rc-entrada">
+      <BotaoTema />
       <div className="rc-e-palco">
         <VitrineMarca />
         <main className="rc-e-painel">

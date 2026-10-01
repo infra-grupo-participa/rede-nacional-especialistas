@@ -3,8 +3,8 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { definirNovaSenha, recuperarSenha, type AuthState } from "@/comunidade/acoes/auth";
-import { MarcaTHB, RodapeEntrada, SetaVoltar } from "@/comunidade/components/entrada/pecas";
-import { Ico } from "@/components/icons";
+import { BotaoTema, MarcaTHB, RodapeEntrada, SetaVoltar } from "@/comunidade/components/entrada/pecas";
+import { CampoSenha } from "@/comunidade/components/entrada/campo-senha";
 
 /* "Encontrar minha conta": pede o e-mail e manda o link para criar uma nova senha. */
 export function TelaRecuperar() {
@@ -13,6 +13,7 @@ export function TelaRecuperar() {
 
   return (
     <div className="rc-entrada">
+      <BotaoTema />
       <main className="rc-e-coluna">
         <Link href="/comunidade/entrar" className="rc-e-voltar" aria-label="Voltar">
           <SetaVoltar />
@@ -66,12 +67,11 @@ export function TelaRecuperar() {
 
 /* Destino do link do e-mail: a sessão já está ativa, falta só a senha nova. */
 export function TelaNovaSenha({ primeiroNome }: { primeiroNome: string }) {
-  const [senha, setSenha] = useState("");
-  const [ver, setVer] = useState(false);
   const [estado, acao, pending] = useActionState<AuthState, FormData>(definirNovaSenha, {});
 
   return (
     <div className="rc-entrada">
+      <BotaoTema />
       <main className="rc-e-coluna">
         <div style={{ marginTop: 6 }}>
           <MarcaTHB />
@@ -82,23 +82,7 @@ export function TelaNovaSenha({ primeiroNome }: { primeiroNome: string }) {
           <label className="rc-e-rotulo" htmlFor="rc-senha">
             Nova senha
           </label>
-          <div className="rc-e-campo-olho">
-            <input
-              id="rc-senha"
-              className="rc-e-campo"
-              type={ver ? "text" : "password"}
-              name="senha"
-              placeholder="Senha (mínimo de 6 caracteres)"
-              autoComplete="new-password"
-              minLength={6}
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-            />
-            <button type="button" className="rc-e-olho" onClick={() => setVer((v) => !v)} aria-label={ver ? "Esconder a senha" : "Mostrar a senha"}>
-              {ver ? <Ico.olhoOff style={{ width: 20, height: 20 }} /> : <Ico.olho style={{ width: 20, height: 20 }} />}
-            </button>
-          </div>
+          <CampoSenha id="rc-senha" placeholder="Senha (mínimo de 6 caracteres)" autoComplete="new-password" minLength={6} autoFocus />
           {estado.erro && (
             <p className="rc-e-aviso rc-e-erro" role="alert">
               {estado.erro}
