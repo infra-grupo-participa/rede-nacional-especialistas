@@ -3,10 +3,17 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Avatar, SeloVerificado, TagNivel } from "@/comunidade/components/atoms";
+import {
+  Avatar,
+  SeloVerificado,
+  TagNivel,
+} from "@/comunidade/components/atoms";
 import { IcoRC } from "@/comunidade/components/icones";
 import { ItemMenu, Menu } from "@/comunidade/components/ui";
-import { CriarPost, type CriarPostRef } from "@/comunidade/components/criar-post";
+import {
+  CriarPost,
+  type CriarPostRef,
+} from "@/comunidade/components/criar-post";
 import { CapaPadrao } from "@/comunidade/components/paginas/capa-padrao";
 import { salvarCamposPerfil } from "@/comunidade/acoes/perfil";
 import { corDeCapaValida } from "@/comunidade/lib/perfil-tipos";
@@ -48,7 +55,8 @@ const ABAS: { id: AbaPerfil; rotulo: string }[] = [
 
 /** A mensagem de erro do envio de imagem vem com travessão; aqui vira vírgula. */
 function mensagem(e: unknown): string {
-  const m = e instanceof Error ? e.message : "Não foi possível enviar a imagem.";
+  const m =
+    e instanceof Error ? e.message : "Não foi possível enviar a imagem.";
   return m.replace(/\s+—\s+/g, ", ");
 }
 
@@ -66,8 +74,13 @@ export function TopoPerfil(p: TopoPerfilProps) {
     setErro(null);
     setEnviando(qual);
     try {
-      const { url } = await subirImagem(arquivo, qual === "capa" ? "perfilcapa" : "avatar");
-      const r = await salvarCamposPerfil(qual === "capa" ? { capa_url: url } : { avatar_url: url });
+      const { url } = await subirImagem(
+        arquivo,
+        qual === "capa" ? "perfilcapa" : "avatar",
+      );
+      const r = await salvarCamposPerfil(
+        qual === "capa" ? { capa_url: url } : { avatar_url: url },
+      );
       if (r.erro) throw new Error(r.erro);
       router.refresh();
     } catch (e) {
@@ -92,7 +105,10 @@ export function TopoPerfil(p: TopoPerfilProps) {
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2000);
     } catch {
-      window.prompt("Copie o link do perfil:", `${window.location.origin}${p.base}`);
+      window.prompt(
+        "Copie o link do perfil:",
+        `${window.location.origin}${p.base}`,
+      );
     }
   };
 
@@ -102,22 +118,43 @@ export function TopoPerfil(p: TopoPerfilProps) {
   return (
     <header className="rc-perfil-topo">
       <div className="rc-perfil-miolo">
-        <div className="rc-perfil-capa" style={!capa && cor && corDeCapaValida(cor) ? { background: cor } : undefined}>
-          {capa ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={capa} alt="" />
-          ) : cor && corDeCapaValida(cor) ? null : (
-            <CapaPadrao />
-          )}
+        {/* a caixa não corta o que sai dela: o menu de "Editar foto da capa" abre
+            para baixo, por cima do nome; só a imagem (rc-perfil-capa) é cortada */}
+        <div className="rc-perfil-capa-caixa">
+          <div
+            className="rc-perfil-capa"
+            style={
+              !capa && cor && corDeCapaValida(cor)
+                ? { background: cor }
+                : undefined
+            }
+          >
+            {capa ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={capa} alt="" />
+            ) : cor && corDeCapaValida(cor) ? null : (
+              <CapaPadrao />
+            )}
+          </div>
           {p.ehMeu && (
             <div className="rc-perfil-capa-acao">
               {capa ? (
                 <Menu
                   rotulo="Foto da capa"
                   gatilho={({ aberto, alternar }) => (
-                    <button type="button" className="rc-btn rc-perfil-btn-capa" aria-expanded={aberto} onClick={alternar} disabled={enviando !== null}>
+                    <button
+                      type="button"
+                      className="rc-btn rc-perfil-btn-capa"
+                      aria-expanded={aberto}
+                      onClick={alternar}
+                      disabled={enviando !== null}
+                    >
                       <IcoRC.camera />
-                      <span>{enviando === "capa" ? "Enviando…" : "Editar foto da capa"}</span>
+                      <span>
+                        {enviando === "capa"
+                          ? "Enviando…"
+                          : "Editar foto da capa"}
+                      </span>
                     </button>
                   )}
                 >
@@ -146,9 +183,18 @@ export function TopoPerfil(p: TopoPerfilProps) {
                   )}
                 </Menu>
               ) : (
-                <button type="button" className="rc-btn rc-perfil-btn-capa" onClick={() => inputCapa.current?.click()} disabled={enviando !== null}>
+                <button
+                  type="button"
+                  className="rc-btn rc-perfil-btn-capa"
+                  onClick={() => inputCapa.current?.click()}
+                  disabled={enviando !== null}
+                >
                   <IcoRC.camera />
-                  <span>{enviando === "capa" ? "Enviando…" : "Adicionar foto da capa"}</span>
+                  <span>
+                    {enviando === "capa"
+                      ? "Enviando…"
+                      : "Adicionar foto da capa"}
+                  </span>
                 </button>
               )}
               <input
@@ -173,7 +219,11 @@ export function TopoPerfil(p: TopoPerfilProps) {
                 <button
                   type="button"
                   className="rc-icone-btn rc-perfil-btn-foto"
-                  aria-label={enviando === "foto" ? "Enviando a foto" : "Trocar a foto de perfil"}
+                  aria-label={
+                    enviando === "foto"
+                      ? "Enviando a foto"
+                      : "Trocar a foto de perfil"
+                  }
                   title="Trocar a foto de perfil"
                   onClick={() => inputFoto.current?.click()}
                   disabled={enviando !== null}
@@ -212,13 +262,27 @@ export function TopoPerfil(p: TopoPerfilProps) {
 
           {p.ehMeu && p.eu && (
             <div className="rc-perfil-botoes">
-              <button type="button" className="rc-btn rc-btn-primario" onClick={() => criar.current?.abrir()}>
+              <button
+                type="button"
+                className="rc-btn rc-btn-primario"
+                onClick={() => criar.current?.abrir()}
+              >
                 <IcoRC.mais /> Criar post
               </button>
-              <Link href={`${p.base}?aba=sobre`} className="rc-btn rc-btn-neutro" scroll={false}>
+              <Link
+                href={`${p.base}?aba=sobre`}
+                className="rc-btn rc-btn-neutro"
+                scroll={false}
+              >
                 <IcoRC.lapis /> Editar perfil
               </Link>
-              <CriarPost ref={criar} eu={p.eu} hashtags={p.hashtags} exigirHashtag={p.exigirHashtag} onPublicado={() => router.refresh()} />
+              <CriarPost
+                ref={criar}
+                eu={p.eu}
+                hashtags={p.hashtags}
+                exigirHashtag={p.exigirHashtag}
+                onPublicado={() => router.refresh()}
+              />
             </div>
           )}
         </div>
@@ -232,7 +296,13 @@ export function TopoPerfil(p: TopoPerfilProps) {
         <div className="rc-perfil-abas-linha">
           <nav className="rc-perfil-abas" aria-label="Seções do perfil">
             {ABAS.map((a) => (
-              <Link key={a.id} href={a.id === "tudo" ? p.base : `${p.base}?aba=${a.id}`} className="rc-perfil-aba" aria-current={a.id === p.aba ? "page" : undefined} scroll={false}>
+              <Link
+                key={a.id}
+                href={a.id === "tudo" ? p.base : `${p.base}?aba=${a.id}`}
+                className="rc-perfil-aba"
+                aria-current={a.id === p.aba ? "page" : undefined}
+                scroll={false}
+              >
                 {a.rotulo}
               </Link>
             ))}
@@ -240,7 +310,13 @@ export function TopoPerfil(p: TopoPerfilProps) {
           <Menu
             rotulo="Mais opções do perfil"
             gatilho={({ aberto, alternar }) => (
-              <button type="button" className="rc-btn rc-btn-neutro rc-perfil-mais" aria-label="Mais opções" aria-expanded={aberto} onClick={alternar}>
+              <button
+                type="button"
+                className="rc-btn rc-btn-neutro rc-perfil-mais"
+                aria-label="Mais opções"
+                aria-expanded={aberto}
+                onClick={alternar}
+              >
                 <IcoRC.pontos />
               </button>
             )}
