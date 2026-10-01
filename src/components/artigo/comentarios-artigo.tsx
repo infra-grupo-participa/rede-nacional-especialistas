@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { C, F } from "@/lib/tokens";
-import { Avatar, Eyebrow, SeloVerificado } from "@/components/atoms";
+import { Avatar, Eyebrow } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { createClient } from "@/lib/supabase/browser";
 import { tempoRelativo } from "@/lib/utils";
@@ -11,7 +11,7 @@ import { comentarArtigo, apagarComentarioArtigo } from "@/app/artigos/comentario
 import type { Qualificacao } from "@/lib/qualificacoes";
 
 const LIMITE = 1500;
-const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, profissao, cidade, certificado, verificado";
+const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, profissao, cidade, certificado";
 
 interface AutorC {
   id: string;
@@ -22,7 +22,6 @@ interface AutorC {
   profissao: string;
   cidade: string;
   certificado: boolean;
-  verificado?: boolean;
 }
 interface ComentarioA {
   id: string;
@@ -153,7 +152,6 @@ export function ComentariosArtigo({
                     <Link href={href} className="text-[14px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600 }}>
                       {c.autor?.nome ?? "—"}
                     </Link>
-                    {c.autor?.verificado && <SeloVerificado size="sm" />}
                     {c.autor?.certificado && (
                       <Ico.selo style={{ width: 14, height: 14, color: C.laranja }} />
                     )}

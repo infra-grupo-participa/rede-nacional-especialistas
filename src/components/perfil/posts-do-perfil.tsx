@@ -64,12 +64,9 @@ function CardPostPerfil({ post }: { post: PostFeed }) {
 export function PostsDoPerfil({
   posts,
   primeiroNome,
-  soMembros = false,
 }: {
   posts: PostFeed[];
   primeiroNome: string;
-  /** visitante sem acesso à comunidade: as publicações são só para alunos. */
-  soMembros?: boolean;
 }) {
   const [aba, setAba] = useState<"posts" | "midia">("posts");
   const midias = useMemo(() => posts.filter((p) => p.imagem_url), [posts]);
@@ -78,9 +75,7 @@ export function PostsDoPerfil({
     return (
       <div className="rounded-2xl px-4 py-8 text-center" style={{ background: C.surface, border: BORDA }}>
         <p className="text-[14px]" style={{ color: C.muted }}>
-          {soMembros
-            ? `As publicações de ${primeiroNome} na comunidade são visíveis só para alunos do Time Holding Brasil.`
-            : `${primeiroNome} ainda não publicou nada.`}
+          {primeiroNome} ainda não publicou nada.
         </p>
       </div>
     );

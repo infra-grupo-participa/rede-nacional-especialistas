@@ -21,14 +21,14 @@ export function AcoesRevisao({ artigoId }: { artigoId: string }) {
     start(async () => {
       const r = await aprovarArtigo(artigoId);
       if (r.erro) setErro(r.erro);
-      else router.push("/coordenacao/artigos");
+      else router.push("/coordenacao");
     });
 
   const enviarAjustes = () =>
     start(async () => {
       const r = await pedirAjustes(artigoId, motivo);
       if (r.erro) setErro(r.erro);
-      else router.push("/coordenacao/artigos");
+      else router.push("/coordenacao");
     });
 
   return (

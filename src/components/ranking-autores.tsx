@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { C, F } from "@/lib/tokens";
-import { Avatar, Eyebrow, SeloVerificado } from "@/components/atoms";
+import { Avatar, Eyebrow } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import type { AutorRanking } from "@/lib/queries";
 
@@ -36,9 +36,8 @@ export function RankingAutores({ autores, titulo = "Top especialistas" }: { auto
                 </span>
                 <Avatar nome={a.nome} foto={a.avatar_url} size={36} />
                 <span className="min-w-0 flex-1">
-                  <span className="flex min-w-0 items-center gap-1 text-[14px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
-                    <span className="truncate">{a.nome}</span>
-                    {a.verificado && <SeloVerificado size="sm" />}
+                  <span className="block truncate text-[14px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
+                    {a.nome}
                   </span>
                   <span className="block truncate text-[12px]" style={{ color: C.muted }}>
                     {a.n_artigos > 0 && `${a.n_artigos} ${a.n_artigos === 1 ? "artigo" : "artigos"}`}
