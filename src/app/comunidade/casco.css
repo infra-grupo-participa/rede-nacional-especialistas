@@ -586,6 +586,9 @@
 }
 .rc-aba {
   position: relative;
+  /* contexto próprio: o fundo do hover (::before, z-index -1) fica ATRÁS do
+     texto da aba; sem isso ele cobria o rótulo, que é texto solto no link */
+  isolation: isolate;
   display: flex;
   flex-shrink: 0;
   align-items: center;
@@ -601,6 +604,7 @@
   content: "";
   position: absolute;
   inset: 4px 0;
+  z-index: -1;
   border-radius: 8px;
   transition: background-color 0.15s ease;
 }
@@ -626,6 +630,9 @@
 @media (hover: hover) {
   .rc-aba:not([aria-current="page"]):hover::before {
     background: var(--paper, #f4eee3);
+  }
+  .rc-aba:not([aria-current="page"]):hover {
+    color: var(--ink, #141210);
   }
 }
 

@@ -100,11 +100,14 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
 - **Tema:** claro é o padrão em todas as telas; o escuro vem só de
   `data-theme="dark"` (botão de tema). Nunca amarrar tema à largura da tela.
 - **Nada dentro da comunidade leva ao blog**, exceto o item "Blog do Time
-  Holding Brasil" do menu da conta (e o do rodapé das telas de entrada). Editar
-  o perfil é em `/comunidade/editar-perfil` (o formulário é o `EditorPerfil` do
-  blog, com `hrefPerfil` apontando para o perfil na comunidade); perfil de
-  membro é `/comunidade/membro/<slug>`. Não linkar `/conta`, `/especialista`,
-  `/feed`, `/artigos` de dentro de `/comunidade`.
+  Holding Brasil" do menu da conta (e o do rodapé das telas de entrada). O perfil
+  do membro é `/comunidade/membro/<slug>`, no formato do perfil do Facebook
+  (`components/perfil/*`, `perfil.css`): capa, foto, nome e as abas Tudo, Sobre
+  e Fotos; nessa rota o cabeçalho do grupo não aparece. **Editar o perfil é no
+  próprio perfil**: capa e foto trocam ali, e a aba Sobre edita um item por vez
+  (`acoes/perfil.ts`, só o dono, lista fechada de campos). Contato (WhatsApp,
+  telefone) só o dono vê. Não linkar `/conta`, `/especialista`, `/feed`,
+  `/artigos` de dentro de `/comunidade`.
 - **Banco:** migrations 0006, 0007, 0008 e 0009 (reações) aplicadas (arquivos em
   `supabase/migrations/`). Posts e comentários só são lidos por membro aprovado
   (o `/feed` antigo do blog aparece vazio para visitante), o dono do perfil não

@@ -47,7 +47,7 @@ export function MenuConta({ nome, avatar, perfilHref }: { nome: string; avatar: 
             </span>
           </Link>
 
-          <Link href="/comunidade/editar-perfil" className="rc-menu-item rc-conta-item" role="menuitem" onClick={fechar}>
+          <Link href={`${perfilHref}?aba=sobre`} className="rc-menu-item rc-conta-item" role="menuitem" onClick={fechar}>
             <span className="rc-conta-bolha">
               <IcoRC.lapis />
             </span>
