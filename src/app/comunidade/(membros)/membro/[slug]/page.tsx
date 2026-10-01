@@ -49,7 +49,11 @@ export default async function MembroPage({ params }: Props) {
   const ehMeu = membro.id === perfil.id;
   const linha = membro.headline?.trim() || membro.profissao?.trim() || "";
   const onde = lugar(membro);
-  const especialidades = (membro.especialidades ?? []).map((e) => e.trim()).filter(Boolean);
+  // No banco a coluna é jsonb: só entra o que for lista de textos.
+  const especialidades = (Array.isArray(membro.especialidades) ? membro.especialidades : [])
+    .filter((e): e is string => typeof e === "string")
+    .map((e) => e.trim())
+    .filter(Boolean);
   const bio = membro.bio?.trim() ?? "";
   const daCoordenacao = membro.papel === "admin";
   const capa = membro.capa_url?.trim() ?? "";
