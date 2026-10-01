@@ -264,7 +264,9 @@
   flex-shrink: 0;
   color: var(--muted, #6e6a66);
 }
-.rc-perfil-chips {
+/* dois nomes de classe: a regra .rc-sobre-chips (margin 0) vem depois no
+   arquivo e vencia esta, colando as especialidades no botão de baixo */
+.rc-sobre-chips.rc-perfil-chips {
   margin: 0 0 16px;
 }
 .rc-perfil-titulo-secao {
