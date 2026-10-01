@@ -19,7 +19,7 @@ export function abaDe(caminho: string): AbaGrupo | null {
   if (sob("/comunidade/sobre") || sob("/comunidade/regras")) return "sobre";
   if (sob("/comunidade/destaques")) return "destaques";
   if (sob("/comunidade/perguntas")) return "perguntas";
-  if (sob("/comunidade/membros") || sob("/comunidade/membro")) return "membros";
+  if (sob("/comunidade/membros") || sob("/comunidade/membro") || sob("/comunidade/editar-perfil")) return "membros";
   if (sob("/comunidade/midia")) return "midia";
   if (sob("/comunidade/arquivos")) return "arquivos";
   if (sob("/comunidade/coordenacao")) return "coordenacao";

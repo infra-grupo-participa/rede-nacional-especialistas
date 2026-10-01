@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { IcoRC } from "@/comunidade/components/icones";
 import { DivisorMenu, ItemMenu, Menu } from "@/comunidade/components/ui";
-import { votar, apagarPost, fixarPost, travarComentarios } from "@/comunidade/acoes/feed";
+import { apagarPost, fixarPost, travarComentarios } from "@/comunidade/acoes/feed";
+import { BotaoReagir, ResumoReacoes, useReacoes } from "@/comunidade/components/reacoes";
 import type { PostFeed } from "@/comunidade/lib/feed";
 import type { Eu } from "@/comunidade/lib/sessao";
 
@@ -37,7 +38,7 @@ async function copiarTexto(texto: string): Promise<boolean> {
   }
 }
 
-/* Linha de ações do post, como no grupo do Facebook: curtir (com o número),
+/* Linha de ações do post, como no grupo do Facebook: reagir (com o número),
    comentar (com o número de comentários) e compartilhar (copia o link). */
 export function PostAcoes({
   post,
@@ -49,29 +50,8 @@ export function PostAcoes({
   nComentarios: number;
   onComentar: () => void;
 }) {
-  const [voto, setVoto] = useState({ meu: post.meu_voto, score: post.score });
   const [copiado, setCopiado] = useState(false);
-  const [pending, start] = useTransition();
-
-  // Quando o servidor manda números novos (router.refresh), eles voltam a
-  // mandar: ajuste de estado durante o render, sem effect.
-  const [visto, setVisto] = useState({ meu: post.meu_voto, score: post.score });
-  if (visto.meu !== post.meu_voto || visto.score !== post.score) {
-    setVisto({ meu: post.meu_voto, score: post.score });
-    setVoto({ meu: post.meu_voto, score: post.score });
-  }
-
-  const curti = voto.meu === 1;
-
-  const curtir = () => {
-    const anterior = voto;
-    const novo = anterior.meu === 1 ? 0 : 1;
-    setVoto({ meu: novo, score: anterior.score - anterior.meu + novo });
-    start(async () => {
-      const r = await votar(post.id, 1);
-      if (r.erro) setVoto(anterior);
-    });
-  };
+  const reacoes = useReacoes(post.id, post.minha_reacao, post.reacoes);
 
   const compartilhar = async () => {
     const link = linkDoPost(post.id);
@@ -84,15 +64,11 @@ export function PostAcoes({
     setTimeout(() => setCopiado(false), 2000);
   };
 
-  const rotuloCurtir = `${curti ? "Desfazer curtida" : "Curtir"}${voto.score > 0 ? ` (${voto.score} ${voto.score === 1 ? "curtida" : "curtidas"})` : ""}`;
   const rotuloComentar = `Comentar${nComentarios > 0 ? ` (${nComentarios} ${nComentarios === 1 ? "comentário" : "comentários"})` : ""}`;
 
   return (
     <div className="rc-post-acoes">
-      <button type="button" className="rc-acao" data-ativo={curti || undefined} aria-pressed={curti} aria-label={rotuloCurtir} title={curti ? "Desfazer curtida" : "Curtir"} disabled={pending} onClick={curtir}>
-        {curti ? <IcoRC.curtido /> : <IcoRC.curtir />}
-        {voto.score > 0 && <span>{voto.score}</span>}
-      </button>
+      <BotaoReagir estado={reacoes.estado} onEscolher={reacoes.escolher} erro={reacoes.erro} />
       <button type="button" className="rc-acao" aria-label={rotuloComentar} title="Comentar" onClick={onComentar}>
         <IcoRC.comentar />
         {nComentarios > 0 && <span>{nComentarios}</span>}
@@ -105,6 +81,7 @@ export function PostAcoes({
           </span>
         )}
       </button>
+      <ResumoReacoes contagem={reacoes.estado.contagem} />
     </div>
   );
 }

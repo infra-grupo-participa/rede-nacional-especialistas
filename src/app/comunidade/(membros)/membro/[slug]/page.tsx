@@ -76,7 +76,7 @@ export default async function MembroPage({ params }: Props) {
                 <Avatar nome={membro.nome} foto={membro.avatar_url} size={120} />
               </span>
               {ehMeu && (
-                <Link href="/conta" className="rc-btn rc-btn-neutro">
+                <Link href="/comunidade/editar-perfil" className="rc-btn rc-btn-neutro">
                   <IcoRC.lapis /> Editar meu perfil
                 </Link>
               )}
@@ -118,13 +118,6 @@ export default async function MembroPage({ params }: Props) {
               </ul>
             )}
 
-            {membro.slug && membro.na_vitrine && (
-              <div className="rc-pg-perfil-rodape">
-                <a href={`/especialista/${encodeURIComponent(membro.slug)}`} target="_blank" rel="noopener" className="rc-pg-link">
-                  Ver perfil público no blog <IcoRC.externo />
-                </a>
-              </div>
-            )}
           </div>
         </article>
 

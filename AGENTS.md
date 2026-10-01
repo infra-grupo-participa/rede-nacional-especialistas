@@ -66,7 +66,8 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   e consultas em `src/comunidade/{components,acoes,lib}/**`. Estilos com prefixo
   `.rc-` em `src/app/comunidade/`: `comunidade.css` (telas de entrada),
   `base.css` (cartão, botões, menu, janela), `casco.css` (topo, cabeçalho do
-  grupo, abas), `feed.css` (discussão, post, comentários) e `paginas.css`
+  grupo, abas), `feed.css` (discussão, post, comentários), `reacoes.css` (carinhas e
+  bandeja de reações) e `paginas.css`
   (Sobre, Membros, perfil, Mídia, Arquivos). Peças comuns: `components/ui.tsx`
   (`Dialogo`, `Menu`), `components/icones.tsx` (`IcoRC`), `components/atoms.tsx`.
 - **Entrada** (referência: telas do Facebook, com a identidade THB):
@@ -86,14 +87,25 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   é aprovado vai para `/comunidade/aguardando` (questionário).
 - **Regras de produto do painel:** "membro" é perfil aprovado COM conta
   (`auth_id`), não o aluno espelhado sem login. Lista de membros, busca e perfil
-  nunca mostram e-mail, WhatsApp ou telefone. Curtir é o voto +1 (não há botão
-  de descurtir). Comentário aceita resposta de um nível (`parent_id`). Regras do
+  nunca mostram e-mail, WhatsApp ou telefone. O post tem seis reações (Curtir,
+  Amei, Risada, Uau, Triste, Raiva; `lib/reacoes.ts`, `components/reacoes.tsx`,
+  `reacoes.css`): uma por membro e por post, guardada em `votos.reacao`, com a
+  contagem por tipo em `posts.reacoes` (gatilho de votos; `score` e `reacoes`
+  só o gatilho grava). Não há botão de descurtir. As carinhas são laranja THB
+  de propósito (pedido do PO: "mascote do THB"). Comentário aceita resposta de
+  um nível (`parent_id`). Regras do
   grupo: texto em blocos separados por linha em branco, primeira linha é o
   título (`lib/regras.ts`). Só entra botão que funciona: Guias, Eventos,
   notificações, Messenger e afins do Facebook ficaram de fora de propósito.
 - **Tema:** claro é o padrão em todas as telas; o escuro vem só de
   `data-theme="dark"` (botão de tema). Nunca amarrar tema à largura da tela.
-- **Banco:** migrations 0006, 0007 e 0008 aplicadas (arquivos em
+- **Nada dentro da comunidade leva ao blog**, exceto o item "Blog do Time
+  Holding Brasil" do menu da conta (e o do rodapé das telas de entrada). Editar
+  o perfil é em `/comunidade/editar-perfil` (o formulário é o `EditorPerfil` do
+  blog, com `hrefPerfil` apontando para o perfil na comunidade); perfil de
+  membro é `/comunidade/membro/<slug>`. Não linkar `/conta`, `/especialista`,
+  `/feed`, `/artigos` de dentro de `/comunidade`.
+- **Banco:** migrations 0006, 0007, 0008 e 0009 (reações) aplicadas (arquivos em
   `supabase/migrations/`). Posts e comentários só são lidos por membro aprovado
   (o `/feed` antigo do blog aparece vazio para visitante), o dono do perfil não
   grava `certificado`/`thb_id`/`plano_thb`, e o Realtime está ligado em
@@ -107,8 +119,7 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   no `ConfirmationURL`, que leva ao SIP. Atrás do Passenger o `request.url` vem
   como `https://0.0.0.0:3000`: nunca montar URL absoluta a partir dele (ver
   `origemPublica`).
-- Pendente na v2: editar o perfil sem sair para `/conta` (página do blog),
-  curtir comentário e o texto completo da descrição do grupo (`GRUPO.descricao`
+- Pendente na v2: reação em comentário, lista de quem reagiu e o texto completo da descrição do grupo (`GRUPO.descricao`
   em `lib/grupo-tipos.ts` usa só o trecho visível no print do Facebook).
 
 ## Regras críticas
