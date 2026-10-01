@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
+import { ehReacao, type Reacao } from "@/comunidade/lib/reacoes";
 
 export type FeedResult = { erro?: string; ok?: boolean; aviso?: string; codigo?: "travado" | "indisponivel" };
 
@@ -88,6 +89,27 @@ export async function votar(postId: string, valor: 1 | -1): Promise<FeedResult> 
         { onConflict: "post_id,perfil_id" },
       );
   }
+
+  revalidatePath("/comunidade");
+  return { ok: true };
+}
+
+/** Reage a um post (Curtir, Amei, Risada, Uau, Triste, Raiva). Cada membro tem
+ *  uma reação por post: escolher outra troca; `null` tira a reação. */
+export async function reagir(postId: string, reacao: Reacao | null): Promise<FeedResult> {
+  if (reacao !== null && !ehReacao(reacao)) return { erro: "Reação inválida." };
+  const perfil = await getPerfilAtual();
+  if (!perfil) return { erro: "Entre para reagir." };
+  if (perfil.status !== "aprovado") return { erro: "Acesso em aprovação." };
+
+  const supabase = await createClient();
+  const { error } =
+    reacao === null
+      ? await supabase.from("votos").delete().eq("post_id", postId).eq("perfil_id", perfil.id)
+      : await supabase
+          .from("votos")
+          .upsert({ post_id: postId, perfil_id: perfil.id, valor: 1, reacao }, { onConflict: "post_id,perfil_id" });
+  if (error) return { erro: "Não foi possível registrar a reação. Tente de novo." };
 
   revalidatePath("/comunidade");
   return { ok: true };

@@ -1,0 +1,342 @@
+/* Reações dos posts: as seis carinhas laranja, a bandeja que abre no curtir e
+   as animações. As cores das carinhas são fixas (iguais nos dois temas); a
+   bandeja e os rótulos seguem os tokens do app. Sem box-shadow. */
+
+.rc-r {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* ---- botão e bandeja ---- */
+.rc-reagir {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rc-reagir-botao {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+.rc-reagir-botao .rc-r {
+  width: 22px;
+  height: 22px;
+}
+.rc-bandeja {
+  position: absolute;
+  left: -4px;
+  bottom: calc(100% + 8px);
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 5px 7px;
+  border: 1px solid var(--line, #e7e0d3);
+  border-radius: 999px;
+  background: var(--surface, #fff);
+  transform-origin: 24px 100%;
+  animation: rc-bandeja-abre 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+/* ponte invisível entre o botão e a bandeja: o mouse atravessa sem fechar */
+.rc-bandeja::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 12px;
+}
+.rc-bandeja-item {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  animation: rc-bandeja-item 0.26s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+  -webkit-tap-highlight-color: transparent;
+}
+.rc-bandeja-item .rc-r {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 3px;
+  transition: transform 0.16s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  transform-origin: 50% 100%;
+}
+.rc-bandeja-item[aria-checked="true"]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 999px;
+  background: #ff6b1a;
+}
+.rc-bandeja-rotulo {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 22px);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--ink, #141210);
+  color: var(--surface, #fff);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  pointer-events: none;
+}
+.rc-bandeja-item:focus-visible {
+  outline: 2px solid var(--ink, #141210);
+  outline-offset: 1px;
+}
+.rc-bandeja-item:focus-visible .rc-r,
+.rc-bandeja-item:active .rc-r {
+  transform: scale(1.32) translateY(-4px);
+}
+.rc-bandeja-item:focus-visible .rc-bandeja-rotulo {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+@media (hover: hover) {
+  .rc-bandeja-item:hover .rc-r {
+    transform: scale(1.38) translateY(-5px);
+  }
+  .rc-bandeja-item:hover .rc-bandeja-rotulo {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@media (max-width: 420px) {
+  .rc-bandeja {
+    gap: 0;
+    padding: 5px 5px;
+  }
+  .rc-bandeja-item {
+    width: 44px;
+  }
+}
+
+/* ---- resumo (as mais usadas, no fim da linha de ações) ---- */
+.rc-reacoes-resumo {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  padding-right: 6px;
+}
+.rc-reacoes-resumo .rc-r {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  outline: 2px solid var(--surface, #fff);
+}
+.rc-reacoes-resumo .rc-r + .rc-r {
+  margin-left: -5px;
+}
+
+/* ---- entrada da reação escolhida no botão ---- */
+.rc-r-entra {
+  animation: rc-r-pop 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
+}
+
+/* ---- animações em laço das carinhas (só na bandeja) ---- */
+.rc-r-vivo .rc-r-mao,
+.rc-r-vivo .rc-r-coracao,
+.rc-r-vivo .rc-r-rosto,
+.rc-r-vivo .rc-r-boca,
+.rc-r-vivo .rc-r-o,
+.rc-r-vivo .rc-r-sobrancelhas,
+.rc-r-vivo .rc-r-lagrima {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.rc-r-curtir.rc-r-vivo .rc-r-mao {
+  transform-origin: 20% 90%;
+  animation: rc-r-acena 1.25s ease-in-out infinite;
+}
+.rc-r-amei.rc-r-vivo .rc-r-coracao {
+  animation: rc-r-bate 1.05s ease-in-out infinite;
+}
+.rc-r-risada.rc-r-vivo .rc-r-rosto {
+  animation: rc-r-gargalha 0.62s ease-in-out infinite;
+}
+.rc-r-risada.rc-r-vivo .rc-r-boca {
+  transform-origin: 50% 0%;
+  animation: rc-r-boca 0.62s ease-in-out infinite;
+}
+.rc-r-uau.rc-r-vivo .rc-r-o {
+  animation: rc-r-espanto 1.5s ease-in-out infinite;
+}
+.rc-r-uau.rc-r-vivo .rc-r-sobrancelhas {
+  animation: rc-r-sobe 1.5s ease-in-out infinite;
+}
+.rc-r-triste.rc-r-vivo .rc-r-rosto {
+  animation: rc-r-murcha 2.2s ease-in-out infinite;
+}
+.rc-r-triste.rc-r-vivo .rc-r-lagrima {
+  animation: rc-r-lagrima 2.2s ease-in infinite;
+}
+.rc-r-raiva.rc-r-vivo .rc-r-rosto {
+  animation: rc-r-treme 0.5s linear infinite;
+}
+
+@keyframes rc-bandeja-abre {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rc-bandeja-item {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rc-r-pop {
+  0% {
+    transform: scale(0.3) rotate(-18deg);
+  }
+  60% {
+    transform: scale(1.35) rotate(6deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes rc-r-acena {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-16deg);
+  }
+  60% {
+    transform: rotate(6deg);
+  }
+}
+@keyframes rc-r-bate {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  18% {
+    transform: scale(1.2);
+  }
+  36% {
+    transform: scale(0.96);
+  }
+  54% {
+    transform: scale(1.14);
+  }
+}
+@keyframes rc-r-gargalha {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(1.5px) rotate(5deg);
+  }
+}
+@keyframes rc-r-boca {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.82);
+  }
+}
+@keyframes rc-r-espanto {
+  0%,
+  100% {
+    transform: scale(0.82);
+  }
+  45%,
+  70% {
+    transform: scale(1.12);
+  }
+}
+@keyframes rc-r-sobe {
+  0%,
+  100% {
+    transform: translateY(1.5px);
+  }
+  45%,
+  70% {
+    transform: translateY(-1.5px);
+  }
+}
+@keyframes rc-r-murcha {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(1.6px);
+  }
+}
+@keyframes rc-r-lagrima {
+  0% {
+    opacity: 0;
+    transform: translateY(-3px) scale(0.5);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(5px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+}
+@keyframes rc-r-treme {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1.1px) rotate(-2deg);
+  }
+  75% {
+    transform: translateX(1.1px) rotate(2deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-bandeja,
+  .rc-bandeja-item,
+  .rc-r-entra,
+  .rc-r-vivo * {
+    animation: none !important;
+  }
+  .rc-bandeja-item .rc-r {
+    transition: none;
+  }
+}

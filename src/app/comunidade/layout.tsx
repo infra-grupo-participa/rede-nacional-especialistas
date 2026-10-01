@@ -3,6 +3,7 @@ import "./comunidade.css";
 import "./base.css";
 import "./casco.css";
 import "./feed.css";
+import "./reacoes.css";
 import "./paginas.css";
 
 /* Rede de Especialistas (v2). Mora em /comunidade, separada do blog: tela de

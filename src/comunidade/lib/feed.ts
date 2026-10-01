@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
 import { CAMPOS_COMENTARIO } from "@/comunidade/lib/feed-tipos";
 import { limparBusca } from "@/comunidade/lib/grupo-tipos";
+import { ehReacao, lerContagem, type ContagemReacoes, type Reacao } from "@/comunidade/lib/reacoes";
 import type { Qualificacao } from "@/comunidade/lib/qualificacoes";
 
 export interface AutorResumo {
@@ -36,6 +37,10 @@ export interface PostFeed {
   autor: AutorResumo;
   /** voto do usuário logado neste post: 1, -1 ou 0. */
   meu_voto: number;
+  /** contagem de reações por tipo (curtir, amei, risada, uau, triste, raiva). */
+  reacoes: ContagemReacoes;
+  /** reação do usuário logado neste post, se houver. */
+  minha_reacao: Reacao | null;
   /** último comentário de primeiro nível, para a prévia no cartão (só nas
    *  listas montadas com `comPrevias`). */
   previa?: ComentarioFeed | null;
@@ -55,32 +60,41 @@ export { CAMPOS_COMENTARIO } from "@/comunidade/lib/feed-tipos";
 const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, headline, profissao, verificado";
 
 const CAMPOS_POST = `id, titulo, corpo, imagem_url, score, n_comentarios, criado_em,
-       ultima_atividade_em, fixado, comentarios_travados, travado_motivo, hashtags,
+       ultima_atividade_em, fixado, comentarios_travados, travado_motivo, hashtags, reacoes,
        autor:autor_id (${CAMPOS_AUTOR})`;
 
 /** Os dois filtros do grupo do Facebook: "novos posts" (ordem de criação) e
  *  "atividade recente" (o post sobe quando alguém comenta). */
 export type OrdemFeed = "novos" | "atividade";
 
-async function comMeusVotos(lista: Omit<PostFeed, "meu_voto">[]): Promise<PostFeed[]> {
+/** Post como vem do banco, antes de juntar o voto e a reação de quem olha. */
+type PostSemVoto = Omit<PostFeed, "meu_voto" | "minha_reacao">;
+
+function comReacao(p: PostSemVoto, voto: { valor: number; reacao?: unknown } | undefined): PostFeed {
+  const valor = voto?.valor ?? 0;
+  return {
+    ...p,
+    reacoes: lerContagem(p.reacoes),
+    meu_voto: valor,
+    minha_reacao: valor > 0 ? (ehReacao(voto?.reacao) ? voto.reacao : "curtir") : null,
+  };
+}
+
+async function comMeusVotos(lista: PostSemVoto[]): Promise<PostFeed[]> {
   if (lista.length === 0) return [];
   const perfil = await getPerfilAtual();
-  const meusVotos: Record<string, number> = {};
+  const meus = new Map<string, { valor: number; reacao?: unknown }>();
   if (perfil) {
     const supabase = await createClient();
     const { data: votos } = await supabase
       .from("votos")
-      .select("post_id, valor")
+      .select("post_id, valor, reacao")
       .eq("perfil_id", perfil.id)
       .in("post_id", lista.map((p) => p.id));
-    for (const v of votos ?? []) {
-      meusVotos[(v as { post_id: string }).post_id] = (v as { valor: number }).valor;
-    }
+    for (const v of (votos ?? []) as { post_id: string; valor: number; reacao?: unknown }[]) meus.set(v.post_id, v);
   }
-  return lista.map((p) => ({ ...p, meu_voto: meusVotos[p.id] ?? 0 }));
+  return lista.map((p) => comReacao(p, meus.get(p.id)));
 }
-
-type PostSemVoto = Omit<PostFeed, "meu_voto">;
 
 /** Filtros das listas de posts. */
 export interface FiltroFeed {
@@ -145,7 +159,7 @@ export async function listarFixados(): Promise<PostFeed[]> {
     .eq("fixado", true)
     .order("fixado_em", { ascending: false })
     .limit(10);
-  return comMeusVotos((data ?? []) as unknown as Omit<PostFeed, "meu_voto">[]);
+  return comMeusVotos((data ?? []) as unknown as PostSemVoto[]);
 }
 
 /** Posts do próprio autor que estão retidos aguardando a moderação. */
@@ -173,17 +187,17 @@ export async function postPorId(id: string): Promise<PostFeed | null> {
   if (!data) return null;
 
   const perfil = await getPerfilAtual();
-  let meu_voto = 0;
+  let voto: { valor: number; reacao?: unknown } | undefined;
   if (perfil) {
     const { data: v } = await supabase
       .from("votos")
-      .select("valor")
+      .select("valor, reacao")
       .eq("post_id", id)
       .eq("perfil_id", perfil.id)
       .maybeSingle();
-    meu_voto = (v as { valor: number } | null)?.valor ?? 0;
+    voto = (v as { valor: number; reacao?: unknown } | null) ?? undefined;
   }
-  return { ...(data as unknown as Omit<PostFeed, "meu_voto">), meu_voto };
+  return comReacao(data as unknown as PostSemVoto, voto);
 }
 
 /** Posts publicados de um autor (histórico do perfil, mais recentes primeiro). */
@@ -197,10 +211,7 @@ export async function postsDoAutor(autorId: string, limite = 60): Promise<PostFe
     .eq("tipo", "post")
     .order("criado_em", { ascending: false })
     .limit(limite);
-  return ((data ?? []) as unknown as Omit<PostFeed, "meu_voto">[]).map((p) => ({
-    ...p,
-    meu_voto: 0,
-  }));
+  return ((data ?? []) as unknown as PostSemVoto[]).map((p) => comReacao(p, undefined));
 }
 
 /** Comentários de um post (ordem cronológica), com autor. */
