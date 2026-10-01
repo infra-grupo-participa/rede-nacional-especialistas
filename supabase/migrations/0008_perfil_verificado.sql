@@ -14,8 +14,7 @@
 --   * o dono do perfil ainda conseguia gravar certificado/thb_id/plano_thb;
 --   * perfil sem login não pode ter selo (quem cadastrar aquele e-mail herdaria);
 --   * sync_alunos_thb() estava executável por anon/authenticated via RPC;
---   * rede.posts precisa estar na publication do Realtime para a trava de
---     comentários chegar ao vivo (a 0004 já adiciona; aqui só garante).
+--   * liga o Realtime nas tabelas da rede (em produção nenhuma estava ligada).
 -- ============================================================================
 
 select set_config('lock_timeout', '5s', true);
@@ -218,12 +217,21 @@ grant execute on function rede.vincular_a_base(uuid, uuid) to authenticated;
 revoke all on function rede.sync_alunos_thb() from public, anon, authenticated;
 grant execute on function rede.sync_alunos_thb() to service_role;
 
--- ---- Realtime: a trava de comentários chega ao vivo pelo UPDATE de rede.posts ----
-do $$ begin
-  if not exists (select 1 from pg_publication_tables
-                  where pubname = 'supabase_realtime' and schemaname = 'rede' and tablename = 'posts') then
-    alter publication supabase_realtime add table rede.posts;
-  end if;
+-- ---- Realtime -----------------------------------------------------------------
+-- Em produção (lido em 01/10/2026) a publication supabase_realtime só tinha
+-- tabelas do schema `central`: os blocos da 0004/0005 nunca pegaram, e os
+-- comentários ao vivo da rede nunca funcionaram. Liga as três tabelas que o
+-- app escuta: comentários (novo comentário aparece), comentários de artigo e
+-- posts (trava/liberação dos comentários ao vivo).
+do $$
+declare t text;
+begin
+  foreach t in array array['posts', 'comentarios', 'artigo_comentarios'] loop
+    if not exists (select 1 from pg_publication_tables
+                    where pubname = 'supabase_realtime' and schemaname = 'rede' and tablename = t) then
+      execute format('alter publication supabase_realtime add table rede.%I', t);
+    end if;
+  end loop;
 end $$;
 
 comment on column rede.perfis.verificado is
