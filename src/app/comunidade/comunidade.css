@@ -282,7 +282,7 @@
   border: 0;
   cursor: default;
 }
-.rc-e-engrenagem > button {
+.rc-e-engrenagem > button:not(.rc-e-fundo-menu) {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -320,7 +320,7 @@
 }
 @media (hover: hover) {
   .rc-e-menu button:hover,
-  .rc-e-engrenagem > button:hover,
+  .rc-e-engrenagem > button:not(.rc-e-fundo-menu):hover,
   .rc-e-voltar:hover {
     background: var(--e-neutro);
   }
@@ -440,11 +440,11 @@
 }
 
 /* convite do celular ("Participe da Rede") */
-.rc-e-convite h1 {
+.rc-e-coluna.rc-e-convite h1 {
   font-size: 27px;
   margin: 18px 0 20px;
 }
-.rc-e-convite .rc-e-sub {
+.rc-e-coluna.rc-e-convite .rc-e-sub {
   margin: 20px 0 20px;
   font-size: 17px;
   line-height: 1.4;
@@ -788,7 +788,7 @@
   .rc-e-marca img {
     height: 20px;
   }
-  .rc-e-salva .rc-e-foto {
+  .rc-e-salva .rc-e-foto:not(.rc-e-foto-p) {
     width: 120px;
     height: 120px;
   }

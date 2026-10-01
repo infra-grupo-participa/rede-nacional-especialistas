@@ -52,8 +52,10 @@ export async function updateSession(request: NextRequest) {
   // cookie segura as chamadas seguintes. Falha aqui nunca derruba a página. O
   // blog fica de fora de propósito: acesso ao blog não é acesso à comunidade.
   if (user && ehNavegacaoDaComunidade(request) && !request.cookies.get(COOKIE_ACESSO)) {
-    try {
-      await supabase.rpc("registrar_acesso");
+    // O cliente devolve { error } em vez de lançar: só segura as próximas
+    // chamadas se o registro entrou; senão a navegação seguinte tenta de novo.
+    const { error } = await supabase.rpc("registrar_acesso");
+    if (!error) {
       response.cookies.set(COOKIE_ACESSO, "1", {
         maxAge: 60 * 10,
         httpOnly: true,
@@ -61,8 +63,6 @@ export async function updateSession(request: NextRequest) {
         secure: request.nextUrl.protocol === "https:",
         path: "/comunidade",
       });
-    } catch {
-      // sem registro desta vez; a próxima navegação tenta de novo
     }
   }
 

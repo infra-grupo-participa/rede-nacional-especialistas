@@ -80,12 +80,15 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   (o `/feed` antigo do blog aparece vazio para visitante), o dono do perfil não
   grava `certificado`/`thb_id`/`plano_thb`, e o Realtime está ligado em
   `rede.posts`, `rede.comentarios` e `rede.artigo_comentarios`.
-- **Dois pontos compartilhados com o blog:** `lib/supabase/middleware.ts`
-  registra o acesso (`registrar_acesso`) só em rota `/comunidade`; e
-  `/auth/confirmar` manda o link de nova senha para `/comunidade/nova-senha`
-  quando encontra o cookie `rede_volta` (posto pelas ações da comunidade).
-  Atrás do Passenger o `request.url` vem como `https://0.0.0.0:3000`: nunca
-  montar URL absoluta a partir dele (ver `origemPublica`).
+- **Único ponto compartilhado com o blog:** `lib/supabase/middleware.ts`
+  registra o acesso (`registrar_acesso`) só em rota `/comunidade`.
+- **Nova senha:** a comunidade tem a própria rota de confirmação,
+  `/comunidade/auth/confirmar` (o blog segue com `/auth/confirmar`). O modelo
+  do e-mail de recuperação no Supabase tem um ramo para cada `redirectTo`
+  (`URL_CONFIRMAR_AUTH` e `URL_CONFIRMAR_COMUNIDADE`); qualquer outro valor cai
+  no `ConfirmationURL`, que leva ao SIP. Atrás do Passenger o `request.url` vem
+  como `https://0.0.0.0:3000`: nunca montar URL absoluta a partir dele (ver
+  `origemPublica`).
 - Pendente na v2: perfil do membro dentro da comunidade (os nomes ainda levam
   para `/especialista/...`, que é página do blog) e a aba de membros.
 

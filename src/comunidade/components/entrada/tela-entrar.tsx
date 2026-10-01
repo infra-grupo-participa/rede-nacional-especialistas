@@ -38,11 +38,21 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
   const [menu, setMenu] = useState(false);
   const [email, setEmail] = useState("");
   const [estado, acao, pending] = useActionState<AuthState, FormData>(entrar, {});
+  // Erro de uma tentativa não acompanha a pessoa para outro modo: ao trocar,
+  // guarda o estado da vez e só mostra erro de um estado mais novo que ele.
+  const [estadoAntigo, setEstadoAntigo] = useState<AuthState | null>(null);
+  const irPara = (m: Modo) => {
+    setEstadoAntigo(estado);
+    setMenu(false);
+    setModo(m);
+  };
+  const erroAcao = estado === estadoAntigo ? undefined : estado.erro;
+  const erroLink = erro ? ERROS[erro] : null;
 
   const lendo = conta === undefined;
   const salva = conta && modo === "auto" ? conta : null;
   const senhaDe = conta && modo === "senha" ? conta : null;
-  const aviso = estado.erro ?? (erro ? ERROS[erro] : null);
+  const aviso = erroAcao ?? erroLink;
 
   const base = (
     <div className="rc-e-base">
@@ -87,13 +97,18 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
           <Foto conta={salva} />
           <p className="rc-e-nome">{salva.nome}</p>
           <div className="rc-e-pilha">
-            <button type="button" className="rc-e-botao rc-e-primario" onClick={() => setModo("senha")}>
+            <button type="button" className="rc-e-botao rc-e-primario" onClick={() => irPara("senha")}>
               Continuar
             </button>
-            <button type="button" className="rc-e-botao rc-e-neutro" onClick={() => setModo("outro")}>
+            <button type="button" className="rc-e-botao rc-e-neutro" onClick={() => irPara("outro")}>
               Usar outro perfil
             </button>
           </div>
+          {erroLink && (
+            <p className="rc-e-aviso rc-e-erro" role="alert" style={{ width: "100%" }}>
+              {erroLink}
+            </p>
+          )}
         </div>
         {base}
       </>
@@ -103,7 +118,7 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
       <>
         <form action={acao} className="rc-e-salva">
           <div className="rc-e-titulo" style={{ alignSelf: "flex-start" }}>
-            <button type="button" className="rc-e-voltar" aria-label="Voltar" onClick={() => setModo("auto")}>
+            <button type="button" className="rc-e-voltar" aria-label="Voltar" onClick={() => irPara("auto")}>
               <SetaVoltar />
             </button>
             Entrar na Rede de Especialistas
@@ -121,7 +136,7 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
           </div>
           {aviso && (
             <p className="rc-e-aviso rc-e-erro" role="alert" style={{ width: "100%" }}>
-              {estado.erro === "E-mail ou senha incorretos." ? "Senha incorreta. Tente de novo." : aviso}
+              {erroAcao === "E-mail ou senha incorretos." ? "Senha incorreta. Tente de novo." : aviso}
             </p>
           )}
           <Link href="/comunidade/recuperar" className="rc-e-link">
@@ -137,7 +152,7 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
         <form action={acao}>
           <h1 className={`rc-e-titulo${conta ? "" : " rc-e-so-desktop"}`}>
             {conta && (
-              <button type="button" className="rc-e-voltar" aria-label="Voltar" onClick={() => setModo("auto")}>
+              <button type="button" className="rc-e-voltar" aria-label="Voltar" onClick={() => irPara("auto")}>
                 <SetaVoltar />
               </button>
             )}

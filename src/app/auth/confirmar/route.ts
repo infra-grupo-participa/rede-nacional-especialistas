@@ -20,7 +20,15 @@ function origemPublica(request: NextRequest): string {
 
 /** Só caminho interno: evita que ?next= vire redirecionamento para outro site. */
 function caminhoSeguro(next: string | null): string {
-  return next && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/";
+  if (!next || !next.startsWith("/")) return "/";
+  // Valida DEPOIS de resolver: "/<TAB>/outro.site" passa num teste de texto e
+  // o new URL() descarta o TAB, virando endereço de outro site.
+  try {
+    const u = new URL(next, ORIGEM_DO_SITE);
+    return u.origin === ORIGEM_DO_SITE ? u.pathname + u.search + u.hash : "/";
+  } catch {
+    return "/";
+  }
 }
 
 /* Confirmação de e-mail. O link do e-mail (modelo de recuperação do Supabase,
@@ -32,19 +40,16 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = caminhoSeguro(searchParams.get("next"));
-  // Pedido de nova senha feito na comunidade (/comunidade): o cookie posto pela
-  // ação de lá faz o link voltar para a tela da comunidade, e não para o blog.
-  const daComunidade = request.cookies.get("rede_volta")?.value === "comunidade";
 
   if (token_hash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) {
       // recovery → leva para redefinir a senha; demais → para o destino.
-      const destino = type === "recovery" ? (daComunidade ? "/comunidade/nova-senha" : "/conta/nova-senha") : next;
+      const destino = type === "recovery" ? "/conta/nova-senha" : next;
       return NextResponse.redirect(new URL(destino, origem));
     }
   }
 
-  return NextResponse.redirect(new URL(`${daComunidade ? "/comunidade" : ""}/entrar?erro=link-invalido`, origem));
+  return NextResponse.redirect(new URL("/entrar?erro=link-invalido", origem));
 }

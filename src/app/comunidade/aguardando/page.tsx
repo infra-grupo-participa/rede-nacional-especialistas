@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getPerfilAtual } from "@/comunidade/lib/sessao";
+import { getEmailLogin, getPerfilAtual } from "@/comunidade/lib/sessao";
 import { C, F } from "@/lib/tokens";
 import { Botao } from "@/comunidade/components/atoms";
 import { sair } from "@/comunidade/acoes/auth";
@@ -82,7 +82,7 @@ export default async function AguardandoPage() {
           {precisaResponder && cfg && <FormPedido perguntas={cfg.perguntas} regras={regras} />}
           {pedido && cfg && <PedidoEnviado respostas={pedido.respostas} perguntas={cfg.perguntas} regras={regras} />}
         </div>
-        <LembrarConta sessao={{ nome: perfil.nome, email: perfil.email ?? null, avatar: perfil.avatar_url ?? null }} />
+        <LembrarConta sessao={{ nome: perfil.nome, email: (await getEmailLogin()) ?? perfil.email ?? null, avatar: perfil.avatar_url ?? null }} />
         <form action={sair} className="mt-5">
           <Botao full variante="secundario" type="submit">
             Sair da conta

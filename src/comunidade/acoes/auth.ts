@@ -4,14 +4,15 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { URL_CONFIRMAR_AUTH } from "@/lib/supabase/config";
+import { URL_CONFIRMAR_COMUNIDADE } from "@/comunidade/lib/urls";
 
 export type AuthState = { erro?: string; ok?: boolean; mensagem?: string };
 
-/** Cookie que diz ao /auth/confirmar que o pedido de nova senha saiu da
- *  comunidade: o link do e-mail volta para /comunidade/nova-senha, e não para
- *  a tela do blog. Vale 1 hora, o mesmo prazo do link. */
-const COOKIE_VOLTA = "rede_volta";
+/** Cookie do registro de acesso (posto pelo middleware). Sai junto com a
+ *  troca de conta, para o acesso da próxima pessoa no mesmo navegador contar. */
+async function limparCookieDeAcesso() {
+  (await cookies()).delete({ name: "rede_acesso", path: "/comunidade" });
+}
 
 function emailValido(e: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -28,6 +29,7 @@ export async function entrar(_prev: AuthState, formData: FormData): Promise<Auth
   const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
   if (error) return { erro: "E-mail ou senha incorretos." };
 
+  await limparCookieDeAcesso();
   revalidatePath("/comunidade", "layout");
   redirect("/comunidade");
 }
@@ -78,17 +80,9 @@ export async function recuperarSenha(_prev: AuthState, formData: FormData): Prom
   if (!emailValido(email)) return { erro: "Digite um e-mail válido." };
 
   const supabase = await createClient();
-  // Não revelamos se o e-mail existe: a resposta é sempre a mesma.
-  await supabase.auth.resetPasswordForEmail(email, { redirectTo: URL_CONFIRMAR_AUTH });
-
-  const jar = await cookies();
-  jar.set(COOKIE_VOLTA, "comunidade", {
-    maxAge: 60 * 60,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-  });
+  // Não revelamos se o e-mail existe: a resposta é sempre a mesma. O link do
+  // e-mail volta para /comunidade/auth/confirmar e de lá para a nova senha.
+  await supabase.auth.resetPasswordForEmail(email, { redirectTo: URL_CONFIRMAR_COMUNIDADE });
 
   return {
     ok: true,
@@ -105,13 +99,15 @@ export async function definirNovaSenha(_prev: AuthState, formData: FormData): Pr
   const { error } = await supabase.auth.updateUser({ password: senha });
   if (error) return { erro: "Não foi possível trocar a senha. Peça um novo link." };
 
-  (await cookies()).delete(COOKIE_VOLTA);
   redirect("/comunidade");
 }
 
 export async function sair() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  // escopo local: sair daqui não derruba a sessão dos outros aparelhos nem dos
+  // outros sistemas que usam a mesma conta (o padrão do signOut é global).
+  await supabase.auth.signOut({ scope: "local" });
+  await limparCookieDeAcesso();
   revalidatePath("/comunidade", "layout");
   redirect("/comunidade/entrar");
 }
@@ -124,15 +120,7 @@ export async function pedirNovaSenha(): Promise<{ ok?: boolean; erro?: string }>
   } = await supabase.auth.getUser();
   if (!user?.email) return { erro: "Entre para trocar sua senha." };
 
-  const { error } = await supabase.auth.resetPasswordForEmail(user.email, { redirectTo: URL_CONFIRMAR_AUTH });
+  const { error } = await supabase.auth.resetPasswordForEmail(user.email, { redirectTo: URL_CONFIRMAR_COMUNIDADE });
   if (error) return { erro: "Não foi possível enviar agora. Tente de novo." };
-
-  (await cookies()).set(COOKIE_VOLTA, "comunidade", {
-    maxAge: 60 * 60,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-  });
   return { ok: true };
 }
