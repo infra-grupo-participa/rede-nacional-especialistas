@@ -1,10 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Perfil } from "@/lib/types";
 import { FILTRO_PROF_OR, ehProfissaoPermitida } from "@/lib/profissoes-permitidas";
-import { idsVerificados } from "@/lib/verificados";
 
 const CAMPOS_CARD =
-  "id, slug, nome, profissao, cidade, uf, whatsapp, avatar_url, qualificacao, bio, certificado, verificado";
+  "id, slug, nome, profissao, cidade, uf, whatsapp, avatar_url, qualificacao, bio, certificado";
 
 export type PerfilCard = Pick<
   Perfil,
@@ -19,7 +18,6 @@ export type PerfilCard = Pick<
   | "qualificacao"
   | "bio"
   | "certificado"
-  | "verificado"
 >;
 
 /** Contagem de especialistas aprovados por UF (só advogados e contadores). */
@@ -199,18 +197,17 @@ export interface AutorRanking {
   n_posts: number;
   total_score: number;
   pontos: number;
-  /** marcado aqui, cruzando com idsVerificados() (a view não traz a coluna). */
-  verificado?: boolean;
 }
 
 /** Ranking de autores por engajamento (top N). */
 export async function rankingAutores(limite = 20): Promise<AutorRanking[]> {
   const supabase = await createClient();
-  const [{ data }, verificados] = await Promise.all([
-    supabase.from("ranking_autores").select("*").gt("pontos", 0).limit(limite),
-    idsVerificados(),
-  ]);
-  return ((data as AutorRanking[]) ?? []).map((a) => ({ ...a, verificado: verificados.has(a.perfil_id) }));
+  const { data } = await supabase
+    .from("ranking_autores")
+    .select("*")
+    .gt("pontos", 0)
+    .limit(limite);
+  return (data as AutorRanking[]) ?? [];
 }
 
 export interface EspecialistaCatalogo {
@@ -232,8 +229,6 @@ export interface EspecialistaCatalogo {
   total_score: number;
   pontos: number;
   nivel_ordem: number;
-  /** marcado aqui, cruzando com idsVerificados() (a view não traz a coluna). */
-  verificado?: boolean;
 }
 
 /** Catálogo completo da vitrine (advogados e contadores aprovados),
@@ -244,7 +239,7 @@ export async function catalogoEspecialistas(): Promise<EspecialistaCatalogo[]> {
   // payload) e a view traz campos que a vitrine não usa. Sem .limit() de
   // propósito — o mapa por UF filtra no cliente e cortar aqui sumiria com
   // especialistas de estados inteiros.
-  const consulta = supabase
+  const { data } = await supabase
     .from("catalogo_especialistas")
     .select(
       "id, slug, nome, profissao, headline, bio, cidade, uf, whatsapp, avatar_url, qualificacao, certificado, especialidades, n_posts, n_artigos, total_score, pontos, nivel_ordem",
@@ -253,6 +248,5 @@ export async function catalogoEspecialistas(): Promise<EspecialistaCatalogo[]> {
     .order("pontos", { ascending: false })
     .order("certificado", { ascending: false })
     .order("nome", { ascending: true });
-  const [{ data }, verificados] = await Promise.all([consulta, idsVerificados()]);
-  return ((data as EspecialistaCatalogo[]) ?? []).map((e) => ({ ...e, verificado: verificados.has(e.id) }));
+  return (data as EspecialistaCatalogo[]) ?? [];
 }

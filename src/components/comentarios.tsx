@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { C, F } from "@/lib/tokens";
-import { Avatar, SeloVerificado, TagNivel } from "@/components/atoms";
+import { Avatar, TagNivel } from "@/components/atoms";
 import { createClient } from "@/lib/supabase/browser";
 import { tempoRelativo } from "@/lib/utils";
 import { criarComentario, apagarComentario } from "@/app/feed/actions";
@@ -11,23 +11,18 @@ import { Ico } from "@/components/icons";
 import type { ComentarioFeed } from "@/lib/feed";
 import type { Qualificacao } from "@/lib/qualificacoes";
 
-const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, verificado";
+const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao";
 
 export function Comentarios({
   postId,
   logado,
   isAdmin,
   meuPerfilId,
-  travado = false,
-  motivoTrava = "",
 }: {
   postId: string;
   logado: boolean;
   isAdmin: boolean;
   meuPerfilId: string | null;
-  /** comentários travados pela moderação: some o campo (admin ainda comenta). */
-  travado?: boolean;
-  motivoTrava?: string;
 }) {
   const [lista, setLista] = useState<ComentarioFeed[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -36,53 +31,12 @@ export function Comentarios({
   const [pending, start] = useTransition();
   const supabaseRef = useRef(createClient());
 
-  // Trava dos comentários. Nasce das props e muda AO VIVO quando a moderação
-  // trava ou libera o post (evento UPDATE do post, abaixo). Quando as props
-  // mudam (ex.: router.refresh), elas voltam a mandar: ajuste de estado durante
-  // o render, sem effect.
-  const [trava, setTrava] = useState({ travado, motivo: motivoTrava });
-  const [propsVistas, setPropsVistas] = useState({ travado, motivoTrava });
-  if (propsVistas.travado !== travado || propsVistas.motivoTrava !== motivoTrava) {
-    setPropsVistas({ travado, motivoTrava });
-    setTrava({ travado, motivo: motivoTrava });
-  }
-
-  const aplicarTrava = useCallback((novoTravado: boolean, novoMotivo: string) => {
-    setTrava((t) => (t.travado === novoTravado && t.motivo === novoMotivo ? t : { travado: novoTravado, motivo: novoMotivo }));
-    if (!novoTravado) setErro(null);
-  }, []);
-
-  /** Estado atual da trava, direto do banco. Cobre o evento ao vivo perdido
-   *  (reconexão, aba em segundo plano) e o envio barrado. Só troca o estado
-   *  quando algo mudou, para não re-renderizar à toa. */
-  const lerTrava = useCallback(async () => {
-    const { data } = await supabaseRef.current
-      .from("posts")
-      .select("comentarios_travados, travado_motivo")
-      .eq("id", postId)
-      .maybeSingle();
-    const p = data as { comentarios_travados?: boolean; travado_motivo?: string } | null;
-    if (!p || typeof p.comentarios_travados !== "boolean") return;
-    aplicarTrava(p.comentarios_travados, p.travado_motivo ?? "");
-  }, [postId, aplicarTrava]);
-
-  /** Lista completa dos comentários do post (carga inicial e depois de enviar). */
-  const buscarLista = useCallback(async () => {
-    const { data } = await supabaseRef.current
-      .from("comentarios")
-      .select(`id, corpo, criado_em, autor:autor_id (${CAMPOS_AUTOR})`)
-      .eq("post_id", postId)
-      .order("criado_em", { ascending: true });
-    return (data ?? []) as unknown as ComentarioFeed[];
-  }, [postId]);
-
   // carga inicial + realtime
   useEffect(() => {
     const supabase = supabaseRef.current;
     let ativo = true;
 
     async function carregar() {
-      void lerTrava();
       const { data } = await supabase
         .from("comentarios")
         .select(`id, corpo, criado_em, autor:autor_id (${CAMPOS_AUTOR})`)
@@ -135,51 +89,13 @@ export function Comentarios({
           if (ativo) setLista((prev) => prev.filter((c) => c.id !== idRemovido));
         },
       )
-      .subscribe((status, err) => {
-        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          console.warn("[comentarios] tempo real dos comentários indisponível:", status, err?.message ?? "");
-        }
-      });
-
-    // Trava/liberação ao vivo para quem está com o post aberto. Canal PRÓPRIO:
-    // o Realtime grava os bindings de um canal numa transação só, então uma
-    // falha aqui (rede.posts fora da publication, por exemplo) derrubaria junto
-    // os comentários ao vivo se dividissem o canal.
-    const canalTrava = supabase
-      .channel(`post-trava:${postId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "rede",
-          table: "posts",
-          filter: `id=eq.${postId}`,
-        },
-        (payload) => {
-          const novo = payload.new as { comentarios_travados?: boolean; travado_motivo?: string };
-          if (ativo && typeof novo.comentarios_travados === "boolean") {
-            aplicarTrava(novo.comentarios_travados, novo.travado_motivo ?? "");
-          }
-        },
-      )
-      .on("system", {}, (m: { status?: string; message?: string }) => {
-        if (m?.status === "error") console.warn("[comentarios] trava ao vivo indisponível:", m.message ?? "");
-      })
-      .subscribe((status, err) => {
-        // SUBSCRIBED dispara também a cada reconexão: relê o estado para não
-        // ficar com a trava velha se um evento se perdeu no meio.
-        if (status === "SUBSCRIBED") void lerTrava();
-        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          console.warn("[comentarios] canal da trava:", status, err?.message ?? "");
-        }
-      });
+      .subscribe();
 
     return () => {
       ativo = false;
       supabase.removeChannel(canal);
-      supabase.removeChannel(canalTrava);
     };
-  }, [postId, lerTrava, aplicarTrava]);
+  }, [postId]);
 
   const remover = (id: string) => {
     if (!confirm("Remover este comentário?")) return;
@@ -203,21 +119,10 @@ export function Comentarios({
     start(async () => {
       const r = await criarComentario(postId, corpo);
       if (r.erro) {
+        setErro(r.erro);
         setTexto(corpo); // devolve o texto p/ não perder
-        if (r.codigo === "travado") {
-          // O banco barrou porque a moderação travou depois que a página abriu:
-          // a tela vira para a trava (com o motivo) mesmo sem o evento ao vivo.
-          // Sem erro vermelho: o aviso da trava já explica.
-          setTrava((t) => (t.travado ? t : { travado: true, motivo: t.motivo }));
-          await lerTrava();
-        } else {
-          setErro(r.erro);
-        }
-        return;
       }
-      // O INSERT costuma chegar pelo realtime; relê a lista para o comentário
-      // aparecer para quem enviou mesmo se o tempo real estiver fora do ar.
-      setLista(await buscarLista());
+      // o INSERT chega pelo realtime; não precisa inserir na lista aqui
     });
   };
 
@@ -246,9 +151,8 @@ export function Comentarios({
                     >
                       {c.autor?.nome ?? "—"}
                     </Link>
-                    {c.autor?.verificado && <SeloVerificado size="sm" />}
                     <TagNivel qualificacao={q} size="sm" />
-                    <span className="shrink-0 whitespace-nowrap text-[11px]" style={{ color: C.muted }}>
+                    <span className="text-[11px]" style={{ color: C.muted }}>
                       · {tempoRelativo(c.criado_em)}
                     </span>
                     {(isAdmin || (meuPerfilId && c.autor?.id === meuPerfilId)) && (
@@ -275,17 +179,6 @@ export function Comentarios({
         </ul>
       )}
 
-      {trava.travado && (
-        <p className="mt-3 flex items-start gap-2 rounded-xl px-3 py-2.5 text-[13px]" style={{ background: C.paper, color: C.muted }} role="status">
-          <Ico.escudo style={{ width: 15, height: 15, flexShrink: 0, marginTop: 1 }} />
-          <span>
-            Comentários desativados pela moderação{trava.motivo ? `: ${trava.motivo}` : "."}
-            {isAdmin && " Como coordenação, você ainda pode comentar."}
-          </span>
-        </p>
-      )}
-
-      {(!trava.travado || isAdmin) && (
       <form onSubmit={enviar} className="mt-3 flex items-end gap-2">
         <textarea
           value={texto}
@@ -309,7 +202,6 @@ export function Comentarios({
           Enviar
         </button>
       </form>
-      )}
       {erro && (
         <p className="mt-1.5 text-[12px]" style={{ color: "#B4342A" }}>
           {erro}

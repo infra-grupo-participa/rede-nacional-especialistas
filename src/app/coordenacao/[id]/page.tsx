@@ -28,7 +28,7 @@ export default async function RevisaoPage({
   return (
     <main style={{ minHeight: "100dvh", background: C.fundo, color: C.ink }}>
       <header className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: `1px solid rgba(17,17,17,.14)` }}>
-        <Link href="/coordenacao/artigos" aria-label="Voltar" className="flex shrink-0 items-center justify-center" style={{ width: 44, height: 44, color: C.ink }}>
+        <Link href="/coordenacao" aria-label="Voltar" className="flex shrink-0 items-center justify-center" style={{ width: 44, height: 44, color: C.ink }}>
           <Ico.back style={{ width: 21, height: 21 }} />
         </Link>
         <div className="min-w-0 flex-1 text-[13px]" style={{ color: C.sobreFundo, fontFamily: F.mono }}>

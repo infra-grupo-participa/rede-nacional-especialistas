@@ -51,39 +51,26 @@ A home é composta em `src/app/page.tsx` a partir de seções independentes em
   banco). Para migrar, criar `rede.eventos` com as mesmas colunas do tipo `Evento`
   e trocar a constante `AGENDA` por uma query — a UI só consome o tipo.
 
-## Gestão da comunidade (migration 0006, 30/09/2026)
-Substitui o grupo do Facebook. Origem: documento "Comunidade THB no Facebook:
-mapeamento de funcionalidades e necessidades". Tudo na rota `/coordenacao/*`
-(só admin) + o feed.
+## Comunidade (v2): fora da `main`, no branch `v2`
+Entre 30/09 e 01/10/2026 a gestão da comunidade (feed fechado, questionário de
+entrada, moderação, relatório por aluno, arquivos, selo de verificado, trava de
+comentários ao vivo) foi publicada por engano em cima deste site. O PO queria uma
+**v2 separada**: a Rede de Especialistas é um produto diferente do blog. Em
+02/10/2026 o código do site voltou ao que era em 04/08 (`482c88f`).
 
-- **Feed fechado**: posts e comentários só para membro aprovado (RLS 0006).
-  Artigos e vitrine continuam públicos.
-- **Entrada**: cadastro → `/aguardando` com as perguntas de `config_comunidade`
-  + aceite das regras (`rede.pedidos_entrada`) → aprovação em
-  `/coordenacao/entrada`, já escolhendo o nível. Cruzamento com a base de
-  alunos: `candidatos_base()` (e-mail, telefone canônico, nome) e
-  `vincular_a_base()` (o login e o conteúdo passam para o perfil espelhado).
-- **Acesso**: `src/lib/supabase/middleware.ts` chama `registrar_acesso()` no
-  máximo a cada 10 min (cookie `rede_acesso`) → `rede.acessos_diarios`.
-  "Presença" no relatório = acesso OU interação. Antes de
-  `config_comunidade.rastreio_desde` o primeiro acesso é estimado.
-- **Moderação**: palavra de `palavras_moderacao` retém o post (status
-  `pendente`); regra da # (`exigir_hashtag`) trava comentários na criação;
-  fixar/travar pelo escudo no post. Gatilhos: `trg_posts_a_guard` roda antes de
-  `trg_posts_b_moderar` (ordem alfabética, não renomear).
-- **Registro**: `rede.log_moderacao` é imutável e nasce só por gatilho/RPC
-  (`registrar_log`). Toda ação de admin cai nele, inclusive exportação.
-- **Arquivos**: bucket PRIVADO `rede-arquivos`, pasta `<perfil_id>/`, download
-  por URL assinada. Tipos puros em `lib/arquivos-tipos.ts` (componente do
-  navegador não pode importar `lib/arquivos.ts`, que usa `next/headers`).
-- **Tag de nível** voltou a aparecer ao lado do nome (THB inclusive, rótulo
-  "Aurum" em vez de "Ouro"). A faixa de faturamento continua escondida.
-- **Perfil verificado** (`perfis.verificado`, 0008): selo laranja com check
-  preto (`SeloVerificado`), só admin altera (Gerenciar membro) e só em perfil
-  com login. Vitrine, ranking e landing leem de views sem a coluna e marcam o
-  selo cruzando com `idsVerificados()`. Não confundir com `certificado`.
-- Sync da base roda todo dia às 03:00 (pg_cron `rede-sync-alunos-thb`, se a
-  extensão existir) e pelo botão em `/coordenacao/entrada`.
+- **O código da comunidade está no branch `v2`** (commit `c5c2bbd`). A v2 vai
+  morar em `/comunidade`, neste mesmo app: tela de login própria e, ao entrar, o
+  feed com cara de grupo. **Não publicar nada de comunidade fora de `/comunidade`.**
+- **O banco ficou com as migrations 0006, 0007 e 0008 aplicadas** (arquivos em
+  `supabase/migrations/`). Elas são aditivas e o site antigo roda em cima delas.
+  Efeitos que valem para este site: posts e comentários só são lidos por membro
+  aprovado (o `/feed` aparece vazio para visitante), o dono do perfil não grava
+  `certificado`/`thb_id`/`plano_thb`, e o Realtime está ligado em
+  `rede.posts`, `rede.comentarios` e `rede.artigo_comentarios`.
+- Da leva de 01/10 ficaram só duas correções do link de redefinição de senha
+  (`URL_CONFIRMAR_AUTH` em `lib/supabase/config.ts` e `/auth/confirmar`): atrás do
+  Passenger o `request.url` vem como `https://0.0.0.0:3000` e o link nunca
+  funcionou; e o projeto Supabase é compartilhado, com Site URL do SIP.
 
 ## Regras críticas
 - **NUNCA** commitar `.env.local` nem service_role. Só `NEXT_PUBLIC_*` no cliente.
@@ -113,11 +100,6 @@ ANTES do merge.
 - Componentes portados do MVP original `rede-nacional-especialistas.jsx`.
 
 ## Dívidas conhecidas
-- A trava de comentários chega ao vivo por um canal próprio (`post-trava:<id>`,
-  UPDATE de `rede.posts`), com releitura do estado ao abrir e ao reconectar e
-  fallback pelo erro `comentarios_travados` no envio. O ambiente local de teste
-  não tem Realtime: o caminho ao vivo só se confere em produção. O menu de
-  moderação (`post-acoes.tsx`) ainda lê a trava das props.
 - As views `catalogo_especialistas`, `ranking_autores` e `perfil_stats` são usadas
   em `src/lib/queries.ts` mas **não existem em nenhuma migration** — foram criadas
   direto no Supabase. Antes de mexer nelas, leia o schema real; o repo não é fonte.

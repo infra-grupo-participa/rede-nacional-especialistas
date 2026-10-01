@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { C, F, BORDA } from "@/lib/tokens";
-import { Avatar, TagNivel, SeloVerificado } from "@/components/atoms";
+import { Avatar } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { TopNav } from "@/components/topnav";
 import { PostAcoes } from "@/components/post-acoes";
@@ -17,30 +17,6 @@ export const dynamic = "force-dynamic";
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [post, perfil, nav] = await Promise.all([postPorId(id), getPerfilAtual(), getSessaoNav()]);
-  // O feed é fechado: quem não é membro aprovado não enxerga o post (RLS). Em
-  // vez de um 404 seco, explica e leva para a entrada.
-  if (!post && perfil?.status !== "aprovado") {
-    return (
-      <main style={{ minHeight: "100dvh", background: C.fundo, color: C.ink }}>
-        <TopNav sessao={nav} />
-        <div className="mx-auto max-w-md px-5 pt-16 text-center">
-          <h1 className="text-[24px] leading-tight" style={{ fontFamily: F.serif, fontWeight: 700 }}>
-            Este post é exclusivo dos alunos
-          </h1>
-          <p className="mt-3 text-[15px]" style={{ color: C.muted }}>
-            Entre com sua conta de aluno do Time Holding Brasil para ler e comentar.
-          </p>
-          <Link
-            href={perfil ? "/aguardando" : "/entrar"}
-            className="press mt-6 inline-flex items-center justify-center rounded-xl px-6 text-[15px] font-semibold"
-            style={{ height: 52, background: C.laranja, color: C.ink }}
-          >
-            {perfil ? "Ver meu pedido de entrada" : "Entrar"}
-          </Link>
-        </div>
-      </main>
-    );
-  }
   if (!post) notFound();
 
   const logado = !!perfil;
@@ -61,13 +37,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
               <Avatar nome={post.autor.nome} foto={post.autor.avatar_url} size={48} />
             </Link>
             <div className="min-w-0 flex-1">
-              <span className="flex min-w-0 items-center gap-1.5">
-                <Link href={href} className="truncate text-[16px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
-                  {post.autor.nome}
-                </Link>
-                {post.autor.verificado && <SeloVerificado size="md" />}
-                <TagNivel qualificacao={post.autor.qualificacao} size="md" />
-              </span>
+              <Link href={href} className="block truncate text-[16px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
+                {post.autor.nome}
+              </Link>
               {subtitulo && (
                 <span className="block truncate text-[13px]" style={{ color: C.muted }}>
                   {subtitulo}
@@ -109,14 +81,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
           {/* comentários abertos */}
           <div className="px-5 pb-5">
-            <Comentarios
-              postId={post.id}
-              logado={logado}
-              isAdmin={isAdmin}
-              meuPerfilId={perfil?.id ?? null}
-              travado={post.comentarios_travados}
-              motivoTrava={post.travado_motivo}
-            />
+            <Comentarios postId={post.id} logado={logado} isAdmin={isAdmin} meuPerfilId={perfil?.id ?? null} />
           </div>
         </article>
       </div>

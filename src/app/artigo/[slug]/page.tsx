@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { C, F, BORDA } from "@/lib/tokens";
-import { Avatar, Botao, SeloVerificado } from "@/components/atoms";
+import { Avatar, Botao } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { Capa, Chapeu, BlocosLidos } from "@/components/artigo/atoms-artigo";
 import { CopiarLink } from "@/components/artigo/copiar-link";
@@ -55,9 +55,8 @@ export default async function ArtigoPage({
           <Link href={`/especialista/${autor.slug ?? autor.id}`} className="press flex items-center gap-2.5">
             <Avatar nome={autor.nome} foto={autor.avatar_url} size={40} />
             <span className="text-left">
-              <span className="flex items-center gap-1.5 text-[14px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600 }}>
+              <span className="block text-[14px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600 }}>
                 {autor.nome}
-                {autor.verificado && <SeloVerificado size="sm" />}
               </span>
               <span className="block text-[12px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
                 {dataPonto(a.publicado_em ?? a.criado_em)} · {tempoLeitura(a)} min
