@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { C, F, BORDA } from "@/lib/tokens";
-import { Botao, Eyebrow, Segmentado, TagNivel } from "@/components/atoms";
+import { Botao, Eyebrow, Segmentado, TagNivel, SeloVerificado } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { Sheet } from "@/components/sheet";
 import { createClient } from "@/lib/supabase/browser";
@@ -214,6 +214,7 @@ function ItemArquivo({ a, podeApagar, isAdmin }: { a: Arquivo; podeApagar: boole
                 {a.autor.nome}
               </Link>
             )}
+            {a.autor?.verificado && <SeloVerificado size="sm" />}
             {a.autor && <TagNivel qualificacao={a.autor.qualificacao} size="sm" />}
           </p>
         </div>

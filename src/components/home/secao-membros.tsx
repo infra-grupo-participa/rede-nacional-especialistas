@@ -4,7 +4,7 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { C, F } from "@/lib/tokens";
 import { TIPO, BOTAO, CARD } from "@/lib/landing";
-import { Avatar } from "@/components/atoms";
+import { Avatar, SeloVerificado } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { Reveal } from "@/components/home/reveal";
 import { MapaBrasil } from "@/components/mapa-brasil";
@@ -87,13 +87,14 @@ function CartaoMembro({ m }: { m: EspecialistaCatalogo }) {
           de card para card conforme o nome quebra, e a grade perde o alinhamento.
           O clamp mora no filho porque `.linha2` usa `display:-webkit-box`, que
           não centraliza vertical — o pai flex resolve isso. */}
-      <span className="mt-3.5 flex w-full items-center justify-center" style={{ minHeight: 38 }}>
+      <span className="mt-3.5 flex w-full items-center justify-center gap-1.5" style={{ minHeight: 38 }}>
         <span
           className="linha2 text-[15px]"
           style={{ fontFamily: F.serif, fontWeight: 700, color: C.ink, letterSpacing: "-0.018em", lineHeight: 1.25 }}
         >
           {m.nome}
         </span>
+        {m.verificado && <SeloVerificado size="sm" />}
       </span>
 
       <span className="mt-1 block truncate text-[12.5px] font-semibold" style={{ color: C.petrolDeep }}>

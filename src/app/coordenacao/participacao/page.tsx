@@ -9,6 +9,7 @@ import {
   periodoDe,
   relatorioParticipacao,
 } from "@/lib/gestao";
+import { idsVerificados } from "@/lib/verificados";
 import { CabecalhoCoordenacao } from "@/components/coordenacao/cabecalho";
 import { SeletorPeriodo } from "@/components/coordenacao/seletor-periodo";
 import { FiltrosRelatorioBarra } from "@/components/coordenacao/filtros-relatorio";
@@ -30,7 +31,11 @@ export default async function ParticipacaoPage({
   const filtros = filtrosDe(sp);
   const hoje = hojeSP();
 
-  const [todas, contadores] = await Promise.all([relatorioParticipacao(periodo), contadoresCoordenacao()]);
+  const [todas, contadores, verificados] = await Promise.all([
+    relatorioParticipacao(periodo),
+    contadoresCoordenacao(),
+    idsVerificados(),
+  ]);
   const linhas = aplicarFiltros(todas, filtros);
 
   // Resumo sobre os aprovados (a base da comunidade), independente dos filtros.
@@ -97,7 +102,7 @@ export default async function ParticipacaoPage({
         </div>
 
         <div className="mt-3">
-          <TabelaParticipacao linhas={linhas} diasInativo={filtros.diasInativo} />
+          <TabelaParticipacao linhas={linhas} diasInativo={filtros.diasInativo} verificados={[...verificados]} />
         </div>
 
         <p className="mt-4 text-[12px] leading-relaxed" style={{ color: C.muted }}>

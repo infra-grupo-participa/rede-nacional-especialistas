@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { C, F } from "@/lib/tokens";
-import { Avatar, TagNivel } from "@/components/atoms";
+import { Avatar, TagNivel, SeloVerificado } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { tempoRelativo } from "@/lib/utils";
 import { Comentarios } from "@/components/comentarios";
@@ -46,6 +46,7 @@ export function PostCard({
             <Link href={href} className="truncate text-[15px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
               {post.autor.nome}
             </Link>
+            {post.autor.verificado && <SeloVerificado size="sm" />}
             <TagNivel qualificacao={post.autor.qualificacao} size="sm" />
           </span>
           <span className="block truncate text-[12px]" style={{ color: C.muted }}>

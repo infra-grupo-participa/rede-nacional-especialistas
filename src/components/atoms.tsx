@@ -98,6 +98,26 @@ export function TagNivel({
   return <SeloNivel q={qualificacao} tamanho={size === "sm" ? "sm" : "lg"} />;
 }
 
+/* -------------------------------------------------------- SeloVerificado -- */
+/* Perfil verificado pela coordenação: disco laranja com check PRETO (sobre
+   laranja a letra é sempre preta). Vai colado ao nome, antes da tag de nível. */
+export function SeloVerificado({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  const d = size === "sm" ? 14 : size === "lg" ? 22 : 17;
+  return (
+    <span
+      role="img"
+      aria-label="Perfil verificado"
+      title="Perfil verificado"
+      className="inline-flex shrink-0 items-center justify-center rounded-full align-middle"
+      style={{ width: d, height: d, background: "#FF6B1A", color: "#0E0E0E" }}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: d * 0.62, height: d * 0.62 }} aria-hidden="true">
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+    </span>
+  );
+}
+
 /* --------------------------------------------------------------- Eyebrow -- */
 export function Eyebrow({
   children,

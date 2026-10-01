@@ -299,7 +299,7 @@ export interface PostRetido {
   status: string;
   criado_em: string;
   moderado_em: string | null;
-  autor: { id: string; slug: string | null; nome: string; avatar_url: string; qualificacao: Qualificacao };
+  autor: { id: string; slug: string | null; nome: string; avatar_url: string; qualificacao: Qualificacao; verificado?: boolean };
 }
 
 export async function postsPorStatus(status: "pendente" | "recusado", limite = 100): Promise<PostRetido[]> {
@@ -308,7 +308,7 @@ export async function postsPorStatus(status: "pendente" | "recusado", limite = 1
     .from("posts")
     .select(
       `id, titulo, corpo, imagem_url, retido_por, status, criado_em, moderado_em,
-       autor:autor_id (id, slug, nome, avatar_url, qualificacao)`,
+       autor:autor_id (id, slug, nome, avatar_url, qualificacao, verificado)`,
     )
     .eq("status", status)
     .order(status === "pendente" ? "criado_em" : "moderado_em", { ascending: status === "pendente" })
@@ -405,6 +405,8 @@ export const ROTULO_ACAO: Record<string, string> = {
   "membro.status": "Mudou status do membro",
   "membro.nivel": "Mudou nível do membro",
   "membro.papel": "Mudou papel do membro",
+  "membro.verificado": "Verificou o perfil",
+  "membro.desverificado": "Tirou a verificação do perfil",
   "membro.visibilidade": "Mudou visibilidade do membro",
   "membro.vinculado_base": "Vinculou membro à base de alunos",
   "entrada.aprovada": "Aprovou entrada",

@@ -42,13 +42,15 @@ export async function decidirPedido(
   return { ok: true };
 }
 
-/** Libera direto um pendente que não respondeu o questionário (caso raro: equipe). */
+/** Muda nível, status ou o selo de verificado de um membro (só coordenação).
+ *  Também usado para liberar direto um pendente sem questionário (equipe). */
 export async function alterarMembro(
   perfilId: string,
-  mudanca: { nivel?: Qualificacao; status?: StatusPerfil },
+  mudanca: { nivel?: Qualificacao; status?: StatusPerfil; verificado?: boolean },
 ): Promise<AcaoResult> {
   if (!(await adminOuNulo())) return { erro: "Sem permissão." };
-  const dados: Record<string, string> = {};
+  const dados: Record<string, string | boolean> = {};
+  if (typeof mudanca.verificado === "boolean") dados.verificado = mudanca.verificado;
   if (mudanca.nivel) {
     if (!NIVEIS.includes(mudanca.nivel)) return { erro: "Nível inválido." };
     dados.qualificacao = mudanca.nivel;
@@ -59,8 +61,16 @@ export async function alterarMembro(
   }
   if (Object.keys(dados).length === 0) return { ok: true };
   const supabase = await createClient();
-  const { error } = await supabase.from("perfis").update(dados).eq("id", perfilId);
+  const { data, error } = await supabase
+    .from("perfis")
+    .update(dados)
+    .eq("id", perfilId)
+    .select("verificado")
+    .maybeSingle();
   if (error) return { erro: "Não foi possível salvar." };
+  // O banco só aceita selo em perfil com login (gatilho da 0008).
+  if (mudanca.verificado === true && data && !(data as { verificado: boolean }).verificado)
+    return { erro: "Esse membro ainda não criou conta na rede, então não pode receber o selo." };
   revalidar();
   return { ok: true };
 }

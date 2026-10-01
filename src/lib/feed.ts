@@ -10,6 +10,8 @@ export interface AutorResumo {
   qualificacao: Qualificacao;
   headline?: string;
   profissao?: string;
+  /** perfil verificado pela coordenação (selo laranja). */
+  verificado?: boolean;
 }
 
 export interface PostFeed {
@@ -39,7 +41,7 @@ export interface ComentarioFeed {
   autor: AutorResumo;
 }
 
-const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, headline, profissao";
+const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, headline, profissao, verificado";
 
 const CAMPOS_POST = `id, titulo, corpo, imagem_url, score, n_comentarios, criado_em,
        ultima_atividade_em, fixado, comentarios_travados, travado_motivo,

@@ -26,6 +26,8 @@ export interface Perfil {
   espaco: string;
   /** certificado pelo Espaço de Instrução. */
   certificado: boolean;
+  /** perfil verificado pela coordenação (selo laranja com check). Só admin altera. */
+  verificado: boolean;
   /** telefone separado do whatsapp. */
   telefone: string;
   /** título curto sob o nome (estilo LinkedIn). */

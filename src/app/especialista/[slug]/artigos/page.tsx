@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { C, F } from "@/lib/tokens";
 import { Ico } from "@/components/icons";
-import { Eyebrow } from "@/components/atoms";
+import { Eyebrow, SeloVerificado } from "@/components/atoms";
 import { LinhaEditorial } from "@/components/artigo/cartoes";
 import { perfilPorSlug } from "@/lib/queries";
 import { artigosDoAutor } from "@/lib/artigos";
@@ -36,6 +36,12 @@ export default async function ArtigosMembroPage({
           <Eyebrow sobreFundo>Artigos publicados</Eyebrow>
           <h1 className="mt-1 text-[24px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
             {m.nome}
+            {m.verificado && (
+              <>
+                {" "}
+                <SeloVerificado size="md" />
+              </>
+            )}
           </h1>
           <p className="mt-1 text-[13px]" style={{ color: C.sobreFundo, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
             {artigos.length} {artigos.length === 1 ? "artigo" : "artigos"}

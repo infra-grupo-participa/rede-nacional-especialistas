@@ -13,7 +13,7 @@ export async function listarArquivos(): Promise<Arquivo[]> {
     .from("arquivos")
     .select(
       `id, titulo, descricao, tipo, caminho, url, mime, tamanho_bytes, fixado, criado_em,
-       autor:autor_id (id, slug, nome, qualificacao)`,
+       autor:autor_id (id, slug, nome, qualificacao, verificado)`,
     )
     .order("fixado", { ascending: false })
     .order("criado_em", { ascending: false })

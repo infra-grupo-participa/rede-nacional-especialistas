@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { C, F, BORDA } from "@/lib/tokens";
-import { Avatar, TagNivel } from "@/components/atoms";
+import { Avatar, TagNivel, SeloVerificado } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { TopNav } from "@/components/topnav";
 import { PostAcoes } from "@/components/post-acoes";
@@ -65,6 +65,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                 <Link href={href} className="truncate text-[16px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
                   {post.autor.nome}
                 </Link>
+                {post.autor.verificado && <SeloVerificado size="md" />}
                 <TagNivel qualificacao={post.autor.qualificacao} size="md" />
               </span>
               {subtitulo && (
