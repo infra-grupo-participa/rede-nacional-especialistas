@@ -63,8 +63,12 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   navegação do blog (`TopNav`) lá dentro. O branch `v2` (`c5c2bbd`) guarda a
   versão antiga, com as rotas na raiz, só como histórico.
 - **Onde está o código:** rotas em `src/app/comunidade/**`; componentes, ações
-  e consultas em `src/comunidade/{components,acoes,lib}/**`; estilos com prefixo
-  `.rc-` em `src/app/comunidade/comunidade.css`.
+  e consultas em `src/comunidade/{components,acoes,lib}/**`. Estilos com prefixo
+  `.rc-` em `src/app/comunidade/`: `comunidade.css` (telas de entrada),
+  `base.css` (cartão, botões, menu, janela), `casco.css` (topo, cabeçalho do
+  grupo, abas), `feed.css` (discussão, post, comentários) e `paginas.css`
+  (Sobre, Membros, perfil, Mídia, Arquivos). Peças comuns: `components/ui.tsx`
+  (`Dialogo`, `Menu`), `components/icones.tsx` (`IcoRC`), `components/atoms.tsx`.
 - **Entrada** (referência: telas do Facebook, com a identidade THB):
   `/comunidade/entrar` (desktop em duas colunas, celular em coluna única; claro
   por padrão nos dois, escuro só pelo botão de tema, que grava `data-theme`),
@@ -72,10 +76,23 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   e `/comunidade/nova-senha`. A conta fica lembrada no aparelho
   (`lib/conta-salva.ts`: só nome, foto e e-mail no localStorage, nunca senha)
   e a entrada oferece "Continuar" ou "Usar outro perfil".
-- **Depois do login** a pessoa cai em `/comunidade`: barra do topo, cabeçalho do
-  grupo (capa, "Grupo privado · N membros", abas) e a Discussão. O grupo
-  `(membros)` exige membro aprovado (`exigirMembro()`); quem não é aprovado vai
-  para `/comunidade/aguardando` (questionário). A coordenação é uma aba do grupo.
+- **Depois do login** a pessoa cai em `/comunidade`, montada como um grupo do
+  Facebook (o PO manda os prints e a tela copia a estrutura, com as cores THB):
+  barra do topo (busca, ícones, menu da conta com a chave de modo escuro),
+  cabeçalho do grupo (capa, "Grupo privado · N membros", fileira de fotos,
+  Convidar / Compartilhar / Entrou) e as abas Sobre, Discussão, Em destaque,
+  Perguntas abertas, Membros, Mídia, Arquivos e Coordenação (só admin). O grupo
+  `(membros)` exige membro aprovado (`exigirMembro()` em TODA página); quem não
+  é aprovado vai para `/comunidade/aguardando` (questionário).
+- **Regras de produto do painel:** "membro" é perfil aprovado COM conta
+  (`auth_id`), não o aluno espelhado sem login. Lista de membros, busca e perfil
+  nunca mostram e-mail, WhatsApp ou telefone. Curtir é o voto +1 (não há botão
+  de descurtir). Comentário aceita resposta de um nível (`parent_id`). Regras do
+  grupo: texto em blocos separados por linha em branco, primeira linha é o
+  título (`lib/regras.ts`). Só entra botão que funciona: Guias, Eventos,
+  notificações, Messenger e afins do Facebook ficaram de fora de propósito.
+- **Tema:** claro é o padrão em todas as telas; o escuro vem só de
+  `data-theme="dark"` (botão de tema). Nunca amarrar tema à largura da tela.
 - **Banco:** migrations 0006, 0007 e 0008 aplicadas (arquivos em
   `supabase/migrations/`). Posts e comentários só são lidos por membro aprovado
   (o `/feed` antigo do blog aparece vazio para visitante), o dono do perfil não
@@ -90,8 +107,9 @@ a comunidade passou a morar em `/comunidade`, neste mesmo app.
   no `ConfirmationURL`, que leva ao SIP. Atrás do Passenger o `request.url` vem
   como `https://0.0.0.0:3000`: nunca montar URL absoluta a partir dele (ver
   `origemPublica`).
-- Pendente na v2: perfil do membro dentro da comunidade (os nomes ainda levam
-  para `/especialista/...`, que é página do blog) e a aba de membros.
+- Pendente na v2: editar o perfil sem sair para `/conta` (página do blog),
+  curtir comentário e o texto completo da descrição do grupo (`GRUPO.descricao`
+  em `lib/grupo-tipos.ts` usa só o trecho visível no print do Facebook).
 
 ## Regras críticas
 - **NUNCA** commitar `.env.local` nem service_role. Só `NEXT_PUBLIC_*` no cliente.

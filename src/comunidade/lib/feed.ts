@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
+import { CAMPOS_COMENTARIO } from "@/comunidade/lib/feed-tipos";
+import { limparBusca } from "@/comunidade/lib/grupo-tipos";
 import type { Qualificacao } from "@/comunidade/lib/qualificacoes";
 
 export interface AutorResumo {
@@ -29,22 +31,31 @@ export interface PostFeed {
   /** comentários travados pela moderação (ou pela regra da #). */
   comentarios_travados: boolean;
   travado_motivo: string;
+  /** hashtags extraídas do texto pelo banco, sem o "#" e em minúsculas. */
+  hashtags: string[];
   autor: AutorResumo;
   /** voto do usuário logado neste post: 1, -1 ou 0. */
   meu_voto: number;
+  /** último comentário de primeiro nível, para a prévia no cartão (só nas
+   *  listas montadas com `comPrevias`). */
+  previa?: ComentarioFeed | null;
 }
 
 export interface ComentarioFeed {
   id: string;
+  /** resposta a outro comentário (um nível só); null = comentário do post. */
+  parent_id: string | null;
   corpo: string;
   criado_em: string;
   autor: AutorResumo;
 }
 
+export { CAMPOS_COMENTARIO } from "@/comunidade/lib/feed-tipos";
+
 const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, headline, profissao, verificado";
 
 const CAMPOS_POST = `id, titulo, corpo, imagem_url, score, n_comentarios, criado_em,
-       ultima_atividade_em, fixado, comentarios_travados, travado_motivo,
+       ultima_atividade_em, fixado, comentarios_travados, travado_motivo, hashtags,
        autor:autor_id (${CAMPOS_AUTOR})`;
 
 /** Os dois filtros do grupo do Facebook: "novos posts" (ordem de criação) e
@@ -69,18 +80,59 @@ async function comMeusVotos(lista: Omit<PostFeed, "meu_voto">[]): Promise<PostFe
   return lista.map((p) => ({ ...p, meu_voto: meusVotos[p.id] ?? 0 }));
 }
 
-/** Feed de posts publicados (sem os fixados, que vêm à parte), com autor e meu voto. */
-export async function listarFeed(ordem: OrdemFeed = "novos", limite = 40): Promise<PostFeed[]> {
+type PostSemVoto = Omit<PostFeed, "meu_voto">;
+
+/** Filtros das listas de posts. */
+export interface FiltroFeed {
+  limite?: number;
+  /** true inclui os fixados na lista (busca, perfil, meu conteúdo). */
+  comFixados?: boolean;
+  /** só posts sem nenhum comentário e com comentários abertos ("Perguntas abertas"). */
+  semResposta?: boolean;
+  /** só posts deste autor (perfil do membro e "Seu conteúdo"). */
+  autorId?: string;
+  /** só posts com esta hashtag (sem o "#"). */
+  hashtag?: string;
+  /** texto procurado no título ou no corpo. */
+  q?: string;
+}
+
+/** Feed de posts publicados, com autor e meu voto. Sem filtro, é a Discussão
+ *  (os fixados vêm à parte, em `listarFixados`). */
+export async function listarFeed(ordem: OrdemFeed = "novos", filtro: FiltroFeed = {}): Promise<PostFeed[]> {
   const supabase = await createClient();
-  const { data: posts } = await supabase
-    .from("posts")
-    .select(CAMPOS_POST)
-    .eq("status", "publicado")
-    .eq("tipo", "post")
-    .eq("fixado", false)
+  let consulta = supabase.from("posts").select(CAMPOS_POST).eq("status", "publicado").eq("tipo", "post");
+  if (!filtro.comFixados) consulta = consulta.eq("fixado", false);
+  if (filtro.semResposta) consulta = consulta.eq("n_comentarios", 0).eq("comentarios_travados", false);
+  if (filtro.autorId) consulta = consulta.eq("autor_id", filtro.autorId);
+  const tag = (filtro.hashtag ?? "").replace(/^#/, "").trim().toLowerCase();
+  if (tag) consulta = consulta.contains("hashtags", [tag]);
+  const q = limparBusca(filtro.q);
+  if (q) consulta = consulta.or(`titulo.ilike.%${q}%,corpo.ilike.%${q}%`);
+  const { data: posts } = await consulta
     .order(ordem === "atividade" ? "ultima_atividade_em" : "criado_em", { ascending: false })
-    .limit(limite);
-  return comMeusVotos((posts ?? []) as unknown as Omit<PostFeed, "meu_voto">[]);
+    .limit(filtro.limite ?? 40);
+  return comMeusVotos((posts ?? []) as unknown as PostSemVoto[]);
+}
+
+/** Acrescenta a cada post a prévia do último comentário de primeiro nível
+ *  (uma consulta só para a lista inteira). */
+export async function comPrevias(posts: PostFeed[]): Promise<PostFeed[]> {
+  const comComentario = posts.filter((p) => p.n_comentarios > 0).map((p) => p.id);
+  if (comComentario.length === 0) return posts.map((p) => ({ ...p, previa: null }));
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("comentarios")
+    .select(`post_id, ${CAMPOS_COMENTARIO}`)
+    .in("post_id", comComentario)
+    .is("parent_id", null)
+    .order("criado_em", { ascending: false })
+    .limit(Math.min(comComentario.length * 15, 600));
+  const ultimo = new Map<string, ComentarioFeed>();
+  for (const c of (data ?? []) as unknown as (ComentarioFeed & { post_id: string })[]) {
+    if (!ultimo.has(c.post_id)) ultimo.set(c.post_id, c);
+  }
+  return posts.map((p) => ({ ...p, previa: ultimo.get(p.id) ?? null }));
 }
 
 /** Posts fixados em destaque (mais recente fixação primeiro). */
@@ -156,7 +208,7 @@ export async function listarComentarios(postId: string): Promise<ComentarioFeed[
   const supabase = await createClient();
   const { data } = await supabase
     .from("comentarios")
-    .select(`id, corpo, criado_em, autor:autor_id (${CAMPOS_AUTOR})`)
+    .select(CAMPOS_COMENTARIO)
     .eq("post_id", postId)
     .order("criado_em", { ascending: true });
   return (data ?? []) as unknown as ComentarioFeed[];

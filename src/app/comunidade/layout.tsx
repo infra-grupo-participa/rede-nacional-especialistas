@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import "./comunidade.css";
+import "./base.css";
+import "./casco.css";
+import "./feed.css";
+import "./paginas.css";
 
 /* Rede de Especialistas (v2). Mora em /comunidade, separada do blog: tela de
    entrada própria e, depois do login, a comunidade com cara de grupo. Nada

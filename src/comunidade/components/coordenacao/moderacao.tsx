@@ -7,6 +7,7 @@ import { C, F, BORDA } from "@/lib/tokens";
 import { Avatar, TagNivel, SeloVerificado } from "@/comunidade/components/atoms";
 import { Ico } from "@/components/icons";
 import { tempoRelativo } from "@/lib/utils";
+import { hrefMembro } from "@/comunidade/lib/grupo-tipos";
 import { moderarPost } from "@/comunidade/acoes/feed";
 import { adicionarPalavra, removerPalavra } from "@/comunidade/acoes/coordenacao";
 import type { PalavraModeracao, PostRetido } from "@/comunidade/lib/gestao";
@@ -29,7 +30,7 @@ export function CartaoRetido({ post, decidido }: { post: PostRetido; decidido?: 
         <Avatar nome={post.autor.nome} foto={post.autor.avatar_url} size={36} />
         <div className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5">
-            <Link href={`/especialista/${post.autor.slug ?? post.autor.id}`} target="_blank" className="truncate text-[14px] font-semibold">
+            <Link href={hrefMembro(post.autor)} className="truncate text-[14px] font-semibold">
               {post.autor.nome}
             </Link>
             {post.autor.verificado && <SeloVerificado size="sm" />}

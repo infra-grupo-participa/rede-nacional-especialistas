@@ -19,7 +19,7 @@ export function MarcaTHB() {
   return (
     <span className="rc-e-marca">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/thb-logo.png" alt="" />
+      <img src="/thb-logo-96.png" alt="" />
       Time Holding Brasil
     </span>
   );
@@ -31,7 +31,7 @@ export function VitrineMarca() {
     <section className="rc-e-vitrine" aria-label="Rede de Especialistas do Time Holding Brasil">
       <Link href="/comunidade/entrar" className="rc-e-vitrine-logo" aria-label="Rede de Especialistas">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/thb-logo.png" alt="Time Holding Brasil" />
+        <img src="/thb-logo-240.png" alt="Time Holding Brasil" />
       </Link>
       <ArteRede />
       <p className="rc-e-chamada">

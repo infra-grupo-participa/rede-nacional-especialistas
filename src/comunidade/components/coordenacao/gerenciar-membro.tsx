@@ -8,6 +8,7 @@ import { Botao, SeloVerificado, TagNivel } from "@/comunidade/components/atoms";
 import { Sheet } from "@/components/sheet";
 import { NIVEIS_ORDENADOS, type Qualificacao } from "@/comunidade/lib/qualificacoes";
 import type { StatusPerfil } from "@/lib/types";
+import { hrefMembro } from "@/comunidade/lib/grupo-tipos";
 import { alterarMembro } from "@/comunidade/acoes/coordenacao";
 import { CandidatosBase } from "./candidatos-base";
 
@@ -89,10 +90,10 @@ export function GerenciarMembro({ membro, aberto, onFechar }: { membro: MembroGe
       <p className="mt-1 text-[13px]" style={{ color: C.muted }}>
         {membro.tem_conta ? "Tem conta na rede" : "Ainda não criou conta na rede"} ·{" "}
         {membro.vinculado_base ? "Vinculado à base de alunos" : "Sem vínculo com a base de alunos"}
-        {membro.slug && (
+        {membro.status === "aprovado" && (
           <>
             {" · "}
-            <Link href={`/especialista/${membro.slug}`} target="_blank" className="font-semibold" style={{ color: C.petrolDeep }}>
+            <Link href={hrefMembro({ slug: membro.slug, id: membro.perfil_id })} className="font-semibold" style={{ color: C.petrolDeep }}>
               ver perfil
             </Link>
           </>

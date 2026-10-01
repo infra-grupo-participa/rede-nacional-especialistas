@@ -1,28 +1,141 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { C, F, BORDA } from "@/lib/tokens";
-import { Avatar } from "@/comunidade/components/atoms";
-import { Ico } from "@/components/icons";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { pedirNovaSenha, sair } from "@/comunidade/acoes/auth";
+import { usePathname, useRouter } from "next/navigation";
+import { IcoRC } from "@/comunidade/components/icones";
+import { MenuConta } from "@/comunidade/components/grupo/menu-conta";
+import { abaDe, hrefBusca, ROTA_BUSCA } from "@/comunidade/components/grupo/rotas";
 import { salvarConta } from "@/comunidade/lib/conta-salva";
 import type { SessaoNav } from "@/comunidade/lib/sessao";
 
-/* Barra do topo da Rede de Especialistas: marca à esquerda, conta à direita.
-   A navegação da comunidade fica nas abas do grupo, logo abaixo. */
-export function TopoComunidade({ sessao }: { sessao: SessaoNav }) {
+/* Barra do topo da Rede de Especialistas, no jeito do Facebook: à esquerda o
+   logo e a busca; no centro (só em tela larga) os ícones de navegação com o
+   traço laranja no ativo; à direita o avatar, que abre o menu da conta. */
+
+type Secao = "inicio" | "membros" | "midia" | "arquivos" | "coordenacao";
+
+const NAVEGACAO: { id: Secao; rotulo: string; href: string; Icone: (typeof IcoRC)[keyof typeof IcoRC] }[] = [
+  { id: "inicio", rotulo: "Início", href: "/comunidade", Icone: IcoRC.casa },
+  { id: "membros", rotulo: "Membros", href: "/comunidade/membros", Icone: IcoRC.pessoas },
+  { id: "midia", rotulo: "Mídia", href: "/comunidade/midia", Icone: IcoRC.imagem },
+  { id: "arquivos", rotulo: "Arquivos", href: "/comunidade/arquivos", Icone: IcoRC.pasta },
+];
+
+/** Ícone do centro que acende em cada caminho (as abas de posts contam como Início). */
+function secaoDe(caminho: string): Secao | null {
+  const aba = abaDe(caminho);
+  if (aba === "discussao" || aba === "destaques" || aba === "perguntas") return "inicio";
+  if (aba === "membros" || aba === "midia" || aba === "arquivos" || aba === "coordenacao") return aba;
+  return null;
+}
+
+export function TopoComunidade({
+  sessao,
+  perfilHref,
+  pendencias = 0,
+}: {
+  sessao: SessaoNav;
+  /** perfil de quem está logado, dentro da comunidade */
+  perfilHref: string;
+  /** pedidos de entrada + posts retidos esperando a coordenação (só admin) */
+  pendencias?: number;
+}) {
+  const caminho = usePathname() ?? "/comunidade";
+  const router = useRouter();
+  const ativa = secaoDe(caminho);
+  const campo = useRef<HTMLInputElement>(null);
+  const lupa = useRef<HTMLButtonElement>(null);
+  const buscaEsteveAberta = useRef(false);
+
+  const [texto, setTexto] = useState("");
+  /* no celular a busca é um botão de lupa que abre o campo por cima da barra */
+  const [buscaAberta, setBuscaAberta] = useState(false);
+
+  // Trocou de página: fecha a busca do celular e, fora da busca, limpa o campo.
+  const [caminhoVisto, setCaminhoVisto] = useState(caminho);
+  if (caminhoVisto !== caminho) {
+    setCaminhoVisto(caminho);
+    setBuscaAberta(false);
+    if (!caminho.startsWith(ROTA_BUSCA)) setTexto("");
+  }
+
+  // Abriu: o foco vai para o campo. Fechou: volta para a lupa.
+  useEffect(() => {
+    if (buscaAberta) {
+      buscaEsteveAberta.current = true;
+      campo.current?.focus();
+    } else if (buscaEsteveAberta.current) {
+      buscaEsteveAberta.current = false;
+      lupa.current?.focus();
+    }
+  }, [buscaAberta]);
+
+  const buscar = (e: FormEvent) => {
+    e.preventDefault();
+    campo.current?.blur();
+    setBuscaAberta(false);
+    router.push(hrefBusca(texto));
+  };
+
+  const itens = sessao.isAdmin
+    ? [...NAVEGACAO, { id: "coordenacao" as const, rotulo: "Coordenação", href: "/comunidade/coordenacao", Icone: IcoRC.escudo }]
+    : NAVEGACAO;
+
   return (
-    <header className="rc-topo">
-      <Link href="/comunidade" className="rc-topo-marca" aria-label="Rede de Especialistas, início">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/thb-logo.png" alt="Time Holding Brasil" />
-        <span>Rede de Especialistas</span>
-      </Link>
-      <div className="ml-auto flex items-center gap-2">
-        <ThemeToggle />
-        <MenuConta sessao={sessao} />
+    <header className="rc-topo" data-busca={buscaAberta ? "aberta" : undefined}>
+      <div className="rc-topo-esq">
+        <Link href="/comunidade" className="rc-topo-logo" aria-label="Rede de Especialistas, início" title="Início">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/thb-logo-96.png" alt="" width={48} height={48} />
+        </Link>
+        <button type="button" className="rc-icone-btn rc-topo-voltar" aria-label="Fechar a busca" onClick={() => setBuscaAberta(false)}>
+          <IcoRC.voltar />
+        </button>
+        <form className="rc-topo-busca" role="search" action={ROTA_BUSCA} onSubmit={buscar}>
+          <IcoRC.busca />
+          <input
+            ref={campo}
+            type="search"
+            name="q"
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setBuscaAberta(false);
+            }}
+            placeholder="Pesquisar na Rede"
+            aria-label="Pesquisar na Rede"
+            autoComplete="off"
+            enterKeyHint="search"
+            maxLength={80}
+          />
+        </form>
+        <button ref={lupa} type="button" className="rc-icone-btn rc-topo-lupa" aria-label="Pesquisar na Rede" aria-expanded={buscaAberta} onClick={() => setBuscaAberta(true)}>
+          <IcoRC.busca />
+        </button>
+      </div>
+
+      <nav className="rc-topo-nav" aria-label="Navegação da Rede">
+        {itens.map(({ id, rotulo, href, Icone }) => {
+          const n = id === "coordenacao" ? pendencias : 0;
+          return (
+            <Link
+              key={id}
+              href={href}
+              className="rc-topo-nav-item"
+              aria-current={id === ativa ? "page" : undefined}
+              aria-label={n ? `${rotulo}, ${n} ${n === 1 ? "pendência" : "pendências"}` : rotulo}
+              title={rotulo}
+            >
+              <Icone />
+              {n > 0 && <span className="rc-topo-nav-n">{n > 99 ? "99+" : n}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="rc-topo-dir">
+        <MenuConta nome={sessao.nome ?? "Membro"} avatar={sessao.avatar} perfilHref={perfilHref} />
       </div>
       <LembrarConta sessao={sessao} />
     </header>
@@ -37,89 +150,4 @@ export function LembrarConta({ sessao }: { sessao: Pick<SessaoNav, "nome" | "ema
     if (nome && email) salvarConta({ nome, email, avatar });
   }, [nome, email, avatar]);
   return null;
-}
-
-function MenuConta({ sessao }: { sessao: SessaoNav }) {
-  const [aberto, setAberto] = useState(false);
-  const [pending, start] = useTransition();
-  const [msgSenha, setMsgSenha] = useState<string | null>(null);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!aberto) return;
-    const fora = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setAberto(false);
-    };
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setAberto(false);
-    document.addEventListener("mousedown", fora);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("mousedown", fora);
-      document.removeEventListener("keydown", esc);
-    };
-  }, [aberto]);
-
-  const trocarSenha = () =>
-    start(async () => {
-      const r = await pedirNovaSenha();
-      setMsgSenha(r.ok ? "Enviamos um link no seu e-mail." : (r.erro ?? "Não foi possível enviar."));
-    });
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setAberto((v) => !v)}
-        aria-label="Sua conta"
-        aria-expanded={aberto}
-        className="press flex items-center gap-1.5 rounded-full pl-1 pr-2"
-        style={{ height: 40, background: C.paper, border: BORDA }}
-      >
-        <Avatar nome={sessao.nome ?? "?"} foto={sessao.avatar} size={30} />
-        <Ico.baixo style={{ width: 15, height: 15, color: C.muted }} />
-      </button>
-
-      {aberto && (
-        <div className="anim-fade absolute right-0 z-50 mt-2 w-72 rounded-2xl p-1.5" style={{ background: C.surface, border: BORDA }} role="menu">
-          <div className="flex items-center gap-3 px-3 py-3">
-            <Avatar nome={sessao.nome ?? "?"} foto={sessao.avatar} size={42} />
-            <div className="min-w-0">
-              <p className="truncate text-[15px]" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 700 }}>
-                {sessao.nome}
-              </p>
-              <p className="truncate text-[12.5px]" style={{ color: C.muted }}>
-                {sessao.isAdmin ? "Coordenação" : "Membro"}
-              </p>
-            </div>
-          </div>
-          <div className="my-1" style={{ borderTop: BORDA }} />
-          <Link href="/conta" className="rc-menu-item" role="menuitem" onClick={() => setAberto(false)}>
-            <Ico.lapis style={{ width: 17, height: 17, color: C.muted }} />
-            Editar meu perfil
-          </Link>
-          <button type="button" className="rc-menu-item" role="menuitem" onClick={trocarSenha} disabled={pending}>
-            <Ico.mail style={{ width: 17, height: 17, color: C.muted }} />
-            <span className="min-w-0">
-              <span className="block">Trocar senha</span>
-              {msgSenha && (
-                <span className="block text-[12.5px] font-normal" style={{ color: C.muted }}>
-                  {msgSenha}
-                </span>
-              )}
-            </span>
-          </button>
-          <Link href="/" className="rc-menu-item" role="menuitem" onClick={() => setAberto(false)}>
-            <Ico.externo style={{ width: 17, height: 17, color: C.muted }} />
-            Blog do Time Holding Brasil
-          </Link>
-          <div className="my-1" style={{ borderTop: BORDA }} />
-          <form action={sair}>
-            <button type="submit" className="rc-menu-item" role="menuitem" style={{ color: "#B24A42" }}>
-              <Ico.back style={{ width: 17, height: 17 }} />
-              Sair
-            </button>
-          </form>
-        </div>
-      )}
-    </div>
-  );
 }

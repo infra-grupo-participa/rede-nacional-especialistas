@@ -97,6 +97,8 @@ export async function votar(postId: string, valor: 1 | -1): Promise<FeedResult> 
 export async function criarComentario(
   postId: string,
   corpoBruto: string,
+  /** id do comentário respondido (resposta de um nível); vazio = comentário do post */
+  respostaA?: string | null,
 ): Promise<FeedResult> {
   const corpo = (corpoBruto || "").trim();
   if (!corpo) return { erro: "Escreva um comentário." };
@@ -107,9 +109,24 @@ export async function criarComentario(
   if (perfil.status !== "aprovado") return { erro: "Acesso em aprovação." };
 
   const supabase = await createClient();
+
+  // Resposta: o comentário respondido tem de ser deste post. As respostas têm
+  // um nível só, então responder a uma resposta cai no comentário de origem.
+  let parent_id: string | null = null;
+  if (respostaA) {
+    const { data: alvo } = await supabase
+      .from("comentarios")
+      .select("id, post_id, parent_id")
+      .eq("id", respostaA)
+      .maybeSingle();
+    const a = alvo as { id: string; post_id: string; parent_id: string | null } | null;
+    if (!a || a.post_id !== postId) return { erro: "O comentário respondido não existe mais." };
+    parent_id = a.parent_id ?? a.id;
+  }
+
   const { error } = await supabase
     .from("comentarios")
-    .insert({ post_id: postId, autor_id: perfil.id, corpo });
+    .insert({ post_id: postId, autor_id: perfil.id, corpo, parent_id });
 
   if (error) {
     if (error.message.includes("comentarios_travados"))

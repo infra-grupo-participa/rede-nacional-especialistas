@@ -72,6 +72,8 @@ export function Avatar({
         height: size,
         background: bg,
         color: fg,
+        // anel fino: uma das cores da paleta é quase preta e sumia no tema escuro
+        border: `1px solid ${C.line}`,
         fontFamily: F.serif,
         fontWeight: 600,
         fontSize: size * 0.38,

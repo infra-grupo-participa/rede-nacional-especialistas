@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { adminOuNulo } from "@/comunidade/lib/admin";
 import { aplicarFiltros, filtrosDe, periodoDe, relatorioParticipacao, type LinhaParticipacao } from "@/comunidade/lib/gestao";
 import { nivelDe } from "@/comunidade/lib/qualificacoes";
+import { hrefMembro } from "@/comunidade/lib/grupo-tipos";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ const COLUNAS: [string, (l: LinhaParticipacao) => unknown][] = [
   ["Último acesso", (l) => dataBR(l.ultimo_acesso)],
   ["Dias sem acesso", (l) => l.dias_sem_acesso ?? ""],
   ["Dias com acesso no período", (l) => l.dias_ativos_periodo],
-  ["Perfil", (l) => (l.slug ? `https://blog.timeholdingbrasil.com.br/especialista/${l.slug}` : "")],
+  ["Perfil", (l) => (l.status === "aprovado" ? `https://blog.timeholdingbrasil.com.br${hrefMembro({ slug: l.slug, id: l.perfil_id })}` : "")],
 ];
 
 export async function GET(request: Request) {
