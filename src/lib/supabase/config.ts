@@ -24,3 +24,13 @@ export function assertSupabaseConfig() {
  */
 export const noStoreFetch: typeof fetch = (input, init) =>
   fetch(input, { ...init, cache: "no-store" });
+
+/**
+ * Para onde o link do e-mail de redefinição de senha volta. O banco é
+ * compartilhado e o endereço padrão do projeto é o do SIP: sem isto, quem
+ * pedia senha nova pela rede caía no SIP. O valor precisa ser EXATAMENTE este:
+ * o modelo de e-mail do Supabase compara com ele para montar o link da rede
+ * (`/auth/confirmar?token_hash=...&type=recovery`), e o endereço está na lista
+ * de Redirect URLs do projeto.
+ */
+export const URL_CONFIRMAR_AUTH = "https://blog.timeholdingbrasil.com.br/auth/confirmar";
