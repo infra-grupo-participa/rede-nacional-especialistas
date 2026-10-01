@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { URL_CONFIRMAR_AUTH } from "@/lib/supabase/config";
 
 export type AuthState = { erro?: string; ok?: boolean; mensagem?: string };
 
@@ -103,9 +104,10 @@ export async function recuperarSenha(
   if (!emailValido(email)) return { erro: "Digite um e-mail válido." };
 
   const supabase = await createClient();
-  // O e-mail sai pela Edge Function rede-auth-email (Resend). Não revelamos se o
-  // e-mail existe — resposta é sempre a mesma.
-  await supabase.auth.resetPasswordForEmail(email);
+  // O e-mail sai pelo SMTP do projeto (Resend) com o modelo de recuperação do
+  // Supabase, que monta o link para /auth/confirmar quando o redirectTo é o da
+  // rede. Não revelamos se o e-mail existe: a resposta é sempre a mesma.
+  await supabase.auth.resetPasswordForEmail(email, { redirectTo: URL_CONFIRMAR_AUTH });
 
   return {
     ok: true,

@@ -2,9 +2,9 @@ import { type NextRequest, NextResponse } from "next/server";
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
-/* Confirmação de e-mail. O link do e-mail (enviado pela Edge Function rede-auth-email
-   via Resend) traz token_hash + type. Aqui verificamos o OTP, o que estabelece a
-   sessão via cookies, e redirecionamos. */
+/* Confirmação de e-mail. O link do e-mail (modelo de recuperação do Supabase,
+   enviado pelo SMTP do projeto via Resend) traz token_hash + type. Aqui
+   verificamos o OTP, o que estabelece a sessão via cookies, e redirecionamos. */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
