@@ -1205,3 +1205,26 @@
     padding: 4px 16px 0;
   }
 }
+
+/* ---- levas seguintes da Discussão ---- */
+.rc-feed-mais {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.rc-feed-mais p {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+}
+.rc-feed-fim {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: var(--muted, #6e6a66);
+  text-align: center;
+}
+@media (max-width: 599px) {
+  .rc-feed-mais {
+    padding: 0 12px;
+  }
+}

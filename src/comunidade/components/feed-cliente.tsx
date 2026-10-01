@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/comunidade/components/atoms";
@@ -10,6 +10,8 @@ import { CriarPost, type CriarPostRef } from "@/comunidade/components/criar-post
 import { CartaoRetidos, ListaPosts } from "@/comunidade/components/lista-posts";
 import { hrefMembro } from "@/comunidade/lib/grupo-tipos";
 import type { OrdemFeed, PostFeed } from "@/comunidade/lib/feed";
+import { POSTS_POR_VEZ } from "@/comunidade/lib/feed-tipos";
+import { maisPosts } from "@/comunidade/acoes/feed";
 import type { Eu } from "@/comunidade/lib/sessao";
 
 const ORDENS: { id: OrdemFeed; rotulo: string; dica: string; href: string }[] = [
@@ -42,6 +44,58 @@ export function FeedCliente({
   const [aviso, setAviso] = useState<string | null>(null);
   const [destaqueAberto, setDestaqueAberto] = useState(false);
   const idDestaque = useId();
+
+  // Levas seguintes ("ver mais" e rolagem). A primeira leva vem do servidor em
+  // `posts` e pode ser renovada (curtir, comentar, publicar); as seguintes
+  // ficam aqui e não se perdem nessa renovação. Trocar a ordem remonta o
+  // componente (key na página) e zera tudo.
+  const [extras, setExtras] = useState<PostFeed[]>([]);
+  const [acabou, setAcabou] = useState(posts.length < POSTS_POR_VEZ);
+  const [carregando, setCarregando] = useState(false);
+  const [erroMais, setErroMais] = useState<string | null>(null);
+  const ocupado = useRef(false);
+  const sentinela = useRef<HTMLDivElement>(null);
+
+  const naPrimeira = new Set(posts.map((p) => p.id));
+  const lista = [...posts, ...extras.filter((p) => !naPrimeira.has(p.id))];
+  const total = lista.length;
+
+  const carregarMais = useCallback(async () => {
+    if (ocupado.current) return;
+    ocupado.current = true;
+    setCarregando(true);
+    setErroMais(null);
+    try {
+      const r = await maisPosts(ordem, total);
+      if (r.erro) setErroMais(r.erro);
+      else {
+        setExtras((atual) => {
+          const tenho = new Set(atual.map((p) => p.id));
+          return [...atual, ...r.posts.filter((p) => !tenho.has(p.id))];
+        });
+        setAcabou(r.acabou);
+      }
+    } catch {
+      setErroMais("Não foi possível carregar mais posts. Tente de novo.");
+    } finally {
+      ocupado.current = false;
+      setCarregando(false);
+    }
+  }, [ordem, total]);
+
+  // rolagem: chegando perto do fim da lista, busca a próxima leva sozinho
+  useEffect(() => {
+    const alvo = sentinela.current;
+    if (!alvo || acabou || erroMais) return;
+    const olho = new IntersectionObserver(
+      (entradas) => {
+        if (entradas.some((e) => e.isIntersecting)) void carregarMais();
+      },
+      { rootMargin: "600px 0px" },
+    );
+    olho.observe(alvo);
+    return () => olho.disconnect();
+  }, [acabou, erroMais, carregarMais]);
   const ordemAtual = ORDENS.find((o) => o.id === ordem) ?? ORDENS[0];
 
   return (
@@ -135,7 +189,20 @@ export function FeedCliente({
       </div>
 
       <div className="rc-feed-lista" data-trocando={trocando || undefined} aria-busy={trocando}>
-        <ListaPosts posts={posts} eu={eu} vazio="Ainda não há posts. Seja o primeiro a publicar." />
+        <ListaPosts posts={lista} eu={eu} vazio="Ainda não há posts. Seja o primeiro a publicar." />
+        {!acabou && (
+          <div ref={sentinela} className="rc-feed-mais">
+            {erroMais && (
+              <p className="rc-erro-texto" role="alert">
+                {erroMais}
+              </p>
+            )}
+            <button type="button" className="rc-btn rc-btn-neutro rc-btn-bloco" onClick={() => void carregarMais()} disabled={carregando}>
+              {carregando ? "Carregando…" : "Ver mais posts"}
+            </button>
+          </div>
+        )}
+        {acabou && total > POSTS_POR_VEZ && <p className="rc-feed-fim">Você chegou ao primeiro post do grupo.</p>}
       </div>
     </div>
   );
