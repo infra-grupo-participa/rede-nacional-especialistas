@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getPerfilAtual } from "@/lib/auth";
 
-export type FeedResult = { erro?: string; ok?: boolean; aviso?: string };
+export type FeedResult = { erro?: string; ok?: boolean; aviso?: string; codigo?: "travado" | "indisponivel" };
 
 const MAX_POST = 2000;
 const MAX_TITULO = 140;
@@ -113,9 +113,9 @@ export async function criarComentario(
 
   if (error) {
     if (error.message.includes("comentarios_travados"))
-      return { erro: "A moderação travou os comentários deste post." };
+      return { erro: "A moderação travou os comentários deste post.", codigo: "travado" };
     if (error.message.includes("post_indisponivel"))
-      return { erro: "Este post não está mais disponível." };
+      return { erro: "Este post não está mais disponível.", codigo: "indisponivel" };
     return { erro: "Não foi possível comentar. Tente de novo." };
   }
   revalidatePath("/feed");

@@ -20,7 +20,7 @@ export interface Arquivo {
   tamanho_bytes: number;
   fixado: boolean;
   criado_em: string;
-  autor: { id: string; slug: string | null; nome: string; qualificacao: Qualificacao };
+  autor: { id: string; slug: string | null; nome: string; qualificacao: Qualificacao; verificado?: boolean };
   /** URL assinada para miniatura (só imagens enviadas). */
   miniatura?: string | null;
 }

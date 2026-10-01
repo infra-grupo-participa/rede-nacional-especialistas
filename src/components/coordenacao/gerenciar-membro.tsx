@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { C, F, BORDA } from "@/lib/tokens";
-import { Botao, TagNivel } from "@/components/atoms";
+import { Botao, SeloVerificado, TagNivel } from "@/components/atoms";
 import { Sheet } from "@/components/sheet";
 import { NIVEIS_ORDENADOS, type Qualificacao } from "@/lib/qualificacoes";
 import type { StatusPerfil } from "@/lib/types";
@@ -20,6 +20,7 @@ export interface MembroGerenciavel {
   status: StatusPerfil;
   vinculado_base: boolean;
   tem_conta: boolean;
+  verificado: boolean;
 }
 
 const ROTULO_STATUS: Record<StatusPerfil, string> = {
@@ -35,17 +36,21 @@ export function GerenciarMembro({ membro, aberto, onFechar }: { membro: MembroGe
   const router = useRouter();
   const [nivel, setNivel] = useState<Qualificacao | null>(null);
   const [status, setStatus] = useState<StatusPerfil | null>(null);
+  const [verificado, setVerificado] = useState<boolean | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   if (!membro) return null;
   const nivelAtual = nivel ?? membro.qualificacao;
   const statusAtual = status ?? membro.status;
-  const mudou = nivelAtual !== membro.qualificacao || statusAtual !== membro.status;
+  const verificadoAtual = verificado ?? membro.verificado;
+  const mudou =
+    nivelAtual !== membro.qualificacao || statusAtual !== membro.status || verificadoAtual !== membro.verificado;
 
   const fechar = () => {
     setNivel(null);
     setStatus(null);
+    setVerificado(null);
     setErro(null);
     onFechar();
   };
@@ -55,6 +60,7 @@ export function GerenciarMembro({ membro, aberto, onFechar }: { membro: MembroGe
       const r = await alterarMembro(membro.perfil_id, {
         nivel: nivelAtual !== membro.qualificacao ? nivelAtual : undefined,
         status: statusAtual !== membro.status ? statusAtual : undefined,
+        verificado: verificadoAtual !== membro.verificado ? verificadoAtual : undefined,
       });
       if (r.erro) setErro(r.erro);
       else {
@@ -117,6 +123,27 @@ export function GerenciarMembro({ membro, aberto, onFechar }: { membro: MembroGe
           </select>
         </label>
       </div>
+      <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-xl p-3 text-[14px]" style={{ background: C.paper, border: BORDA }}>
+        <input
+          type="checkbox"
+          checked={verificadoAtual}
+          disabled={!membro.tem_conta}
+          onChange={(e) => setVerificado(e.target.checked)}
+          className="mt-0.5 h-5 w-5 shrink-0"
+          style={{ accentColor: "#141210" }}
+        />
+        <span>
+          <span className="flex items-center gap-1.5 font-semibold">
+            Perfil verificado <SeloVerificado size="md" />
+          </span>
+          <span className="block text-[12px]" style={{ color: C.muted }}>
+            {membro.tem_conta
+              ? "O selo laranja aparece ao lado do nome no feed, nos comentários, no perfil e na vitrine."
+              : "Só dá para verificar quem já criou conta na rede. Sem login, o selo iria para quem cadastrasse esse e-mail."}
+          </span>
+        </span>
+      </label>
+
       {membro.vinculado_base && nivelAtual !== membro.qualificacao && (
         <p className="mt-2 text-[12px]" style={{ color: "#B24A42" }}>
           Este membro está vinculado à base: a sincronização diária volta o nível para o plano comprado.

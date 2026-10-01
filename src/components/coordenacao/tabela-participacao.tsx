@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { C, F, BORDA } from "@/lib/tokens";
-import { TagNivel } from "@/components/atoms";
+import { SeloVerificado, TagNivel } from "@/components/atoms";
 import type { LinhaParticipacao } from "@/lib/gestao";
 import { GerenciarMembro, type MembroGerenciavel } from "./gerenciar-membro";
 
@@ -26,7 +26,17 @@ function Par({ periodo, total }: { periodo: number; total: number }) {
 /* Uma linha por aluno com todos os indicadores (item 1 do documento).
    Período / total em cada contador: o primeiro número é do período filtrado,
    o segundo é desde a entrada. */
-export function TabelaParticipacao({ linhas, diasInativo }: { linhas: LinhaParticipacao[]; diasInativo: number }) {
+export function TabelaParticipacao({
+  linhas,
+  diasInativo,
+  verificados = [],
+}: {
+  linhas: LinhaParticipacao[];
+  diasInativo: number;
+  /** ids dos perfis com selo de verificado. */
+  verificados?: string[];
+}) {
+  const selo = new Set(verificados);
   const [limite, setLimite] = useState(POR_PAGINA);
   const [membro, setMembro] = useState<MembroGerenciavel | null>(null);
 
@@ -66,11 +76,15 @@ export function TabelaParticipacao({ linhas, diasInativo }: { linhas: LinhaParti
                 <tr key={l.perfil_id} style={{ borderTop: BORDA }}>
                   <td className={`${td} max-w-[260px]`}>
                     {l.slug ? (
-                      <Link href={`/especialista/${l.slug}`} target="_blank" className="block truncate font-semibold" style={{ color: C.ink }}>
-                        {l.nome || "(sem nome)"}
+                      <Link href={`/especialista/${l.slug}`} target="_blank" className="flex min-w-0 items-center gap-1 font-semibold" style={{ color: C.ink }}>
+                        <span className="truncate">{l.nome || "(sem nome)"}</span>
+                        {selo.has(l.perfil_id) && <SeloVerificado size="sm" />}
                       </Link>
                     ) : (
-                      <span className="block truncate font-semibold">{l.nome || "(sem nome)"}</span>
+                      <span className="flex min-w-0 items-center gap-1 font-semibold">
+                        <span className="truncate">{l.nome || "(sem nome)"}</span>
+                        {selo.has(l.perfil_id) && <SeloVerificado size="sm" />}
+                      </span>
                     )}
                     <span className="block truncate text-[12px]" style={{ color: C.muted }}>
                       {l.email}
@@ -135,6 +149,7 @@ export function TabelaParticipacao({ linhas, diasInativo }: { linhas: LinhaParti
                           status: l.status,
                           vinculado_base: l.vinculado_base,
                           tem_conta: l.tem_conta,
+                          verificado: selo.has(l.perfil_id),
                         })
                       }
                       className="press rounded-full px-3 text-[12px] font-semibold"

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { C, F } from "@/lib/tokens";
-import { Avatar, Placa } from "@/components/atoms";
+import { Avatar, Placa, SeloVerificado } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { waLink } from "@/lib/utils";
 import { rotuloProfissao } from "@/lib/profissoes-permitidas";
@@ -38,8 +38,9 @@ export function CardMembro({ m }: { m: PerfilCard }) {
         </div>
 
         <div className="mt-2">
-          <p className="truncate text-[17px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
-            {m.nome}
+          <p className="flex min-w-0 items-center gap-1.5 text-[17px] leading-tight" style={{ color: C.ink, fontFamily: F.serif, fontWeight: 600, letterSpacing: "-0.018em" }}>
+            <span className="truncate">{m.nome}</span>
+            {m.verificado && <SeloVerificado size="md" />}
           </p>
           <p className="mt-0.5 text-[13px] font-semibold" style={{ color: C.petrolDeep }}>
             {prof}

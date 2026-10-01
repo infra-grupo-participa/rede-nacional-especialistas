@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { C, F, BORDA } from "@/lib/tokens";
-import { Avatar, TagNivel } from "@/components/atoms";
+import { Avatar, TagNivel, SeloVerificado } from "@/components/atoms";
 import { Ico } from "@/components/icons";
 import { tempoRelativo } from "@/lib/utils";
 import { moderarPost } from "@/app/feed/actions";
@@ -32,6 +32,7 @@ export function CartaoRetido({ post, decidido }: { post: PostRetido; decidido?: 
             <Link href={`/especialista/${post.autor.slug ?? post.autor.id}`} target="_blank" className="truncate text-[14px] font-semibold">
               {post.autor.nome}
             </Link>
+            {post.autor.verificado && <SeloVerificado size="sm" />}
             <TagNivel qualificacao={post.autor.qualificacao} size="sm" />
           </span>
           <span className="text-[12px]" style={{ color: C.muted }}>

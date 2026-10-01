@@ -21,7 +21,7 @@ export type {
 export { STATUS_META, chapeuDe, tempoLeitura } from "@/lib/artigos-tipos";
 
 const CAMPOS_AUTOR_ARTIGO =
-  "id, slug, nome, avatar_url, qualificacao, profissao, cidade, uf, whatsapp, espaco, certificado";
+  "id, slug, nome, avatar_url, qualificacao, profissao, cidade, uf, whatsapp, espaco, certificado, verificado";
 
 const CAMPOS_ARTIGO =
   "id, autor_id, slug, titulo, chapeu, resumo, capa, blocos, status, motivo, leituras, criado_em, enviado_em, publicado_em, atualizado_em";

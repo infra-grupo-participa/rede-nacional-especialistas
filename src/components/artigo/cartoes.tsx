@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { C, F, BORDA } from "@/lib/tokens";
-import { Avatar, Eyebrow } from "@/components/atoms";
+import { Avatar, Eyebrow, SeloVerificado } from "@/components/atoms";
 import { dataPonto } from "@/lib/utils";
 import { chapeuDe, tempoLeitura, type ArtigoComAutor } from "@/lib/artigos-tipos";
 import { Capa, Chapeu } from "@/components/artigo/atoms-artigo";
@@ -17,9 +17,10 @@ export function Assinatura({ a, tamanho = 22 }: { a: ArtigoComAutor; tamanho?: n
   return (
     <span className="mt-2.5 flex items-center gap-2">
       <Avatar nome={a.autor.nome} foto={a.autor.avatar_url} size={tamanho} />
-      <span className="min-w-0 flex-1 truncate text-[12px]" style={{ color: C.ink }}>
-        <strong style={{ fontWeight: 600 }}>{a.autor.nome}</strong>
-        <span style={{ color: C.muted }}> · {a.autor.profissao}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-1 text-[12px]" style={{ color: C.ink }}>
+        <strong className="truncate" style={{ fontWeight: 600 }}>{a.autor.nome}</strong>
+        {a.autor.verificado && <SeloVerificado size="sm" />}
+        <span className="shrink-0" style={{ color: C.muted }}>· {a.autor.profissao}</span>
       </span>
       <span className="shrink-0 text-[11px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
         {tempoLeitura(a)} min
@@ -75,7 +76,8 @@ export function LinhaEditorial({ a }: { a: ArtigoComAutor }) {
         )}
         <span className="mt-2 flex items-center gap-2 text-[11px]" style={{ color: C.muted, fontFamily: F.mono, fontVariantNumeric: "tabular-nums" }}>
           <span className="truncate" style={{ color: C.ink }}>{a.autor.nome}</span>
-          <span>· {dataPonto(a.publicado_em ?? a.criado_em)}</span>
+          {a.autor.verificado && <SeloVerificado size="sm" />}
+          <span className="shrink-0">· {dataPonto(a.publicado_em ?? a.criado_em)}</span>
           <span>· {tempoLeitura(a)} min</span>
         </span>
       </span>

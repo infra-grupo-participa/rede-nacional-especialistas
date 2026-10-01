@@ -78,6 +78,10 @@ mapeamento de funcionalidades e necessidades". Tudo na rota `/coordenacao/*`
   navegador não pode importar `lib/arquivos.ts`, que usa `next/headers`).
 - **Tag de nível** voltou a aparecer ao lado do nome (THB inclusive, rótulo
   "Aurum" em vez de "Ouro"). A faixa de faturamento continua escondida.
+- **Perfil verificado** (`perfis.verificado`, 0008): selo laranja com check
+  preto (`SeloVerificado`), só admin altera (Gerenciar membro) e só em perfil
+  com login. Vitrine, ranking e landing leem de views sem a coluna e marcam o
+  selo cruzando com `idsVerificados()`. Não confundir com `certificado`.
 - Sync da base roda todo dia às 03:00 (pg_cron `rede-sync-alunos-thb`, se a
   extensão existir) e pelo botão em `/coordenacao/entrada`.
 
@@ -109,8 +113,11 @@ ANTES do merge.
 - Componentes portados do MVP original `rede-nacional-especialistas.jsx`.
 
 ## Dívidas conhecidas
-- O realtime dos comentários não reflete a trava ao vivo: quem está com o post
-  aberto só vê a trava ao recarregar (o banco já barra o envio).
+- A trava de comentários chega ao vivo por um canal próprio (`post-trava:<id>`,
+  UPDATE de `rede.posts`), com releitura do estado ao abrir e ao reconectar e
+  fallback pelo erro `comentarios_travados` no envio. O ambiente local de teste
+  não tem Realtime: o caminho ao vivo só se confere em produção. O menu de
+  moderação (`post-acoes.tsx`) ainda lê a trava das props.
 - As views `catalogo_especialistas`, `ranking_autores` e `perfil_stats` são usadas
   em `src/lib/queries.ts` mas **não existem em nenhuma migration** — foram criadas
   direto no Supabase. Antes de mexer nelas, leia o schema real; o repo não é fonte.
