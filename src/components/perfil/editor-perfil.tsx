@@ -64,14 +64,7 @@ function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode
   );
 }
 
-export function EditorPerfil({
-  perfil,
-  hrefPerfil,
-}: {
-  perfil: Perfil;
-  /** destino do "Ver meu perfil"; sem ele, o perfil público do blog. */
-  hrefPerfil?: string;
-}) {
+export function EditorPerfil({ perfil }: { perfil: Perfil }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
@@ -267,7 +260,7 @@ export function EditorPerfil({
       <div className="fixed bottom-0 left-0 right-0" style={{ background: C.fundo, borderTop: BORDA }}>
         <div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
           {perfil.slug && (
-            <a href={hrefPerfil ?? `/especialista/${perfil.slug}`} className="press rounded-xl px-4 text-[14px] font-semibold" style={{ height: 52, lineHeight: "52px", color: C.ink, border: BORDA }}>
+            <a href={`/especialista/${perfil.slug}`} className="press rounded-xl px-4 text-[14px] font-semibold" style={{ height: 52, lineHeight: "52px", color: C.ink, border: BORDA }}>
               Ver meu perfil
             </a>
           )}

@@ -41,6 +41,10 @@ export function CabecalhoGrupo({
   const fecharJanela = useCallback(() => setJanela(null), []);
   const abrirCompartilhar = useCallback(() => setJanela("compartilhar"), []);
 
+  // No perfil de um membro a página é o perfil (capa, foto, abas do perfil),
+  // como no Facebook: o cabeçalho do grupo não aparece.
+  if (caminho.startsWith("/comunidade/membro/")) return null;
+
   return (
     <>
       <section className="rc-grupo" aria-label={GRUPO.nome}>

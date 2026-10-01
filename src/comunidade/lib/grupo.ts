@@ -75,9 +75,14 @@ export interface MembroPerfil extends MembroResumo {
   bio: string | null;
   capa_url: string | null;
   cor_capa: string | null;
-  especialidades: string[] | null;
+  especialidades: unknown;
+  destaques: unknown;
+  espaco: string | null;
   instagram: string | null;
   linkedin: string | null;
+  youtube: string | null;
+  tiktok: string | null;
+  facebook: string | null;
   site: string | null;
   tem_conta: boolean;
   /** aparece na vitrine pública do blog (não pediu para ficar oculto) */
@@ -87,7 +92,7 @@ export interface MembroPerfil extends MembroResumo {
 /** Perfil de um membro pelo slug (ou id). Só aprovado. */
 export async function membroPorSlug(slugOuId: string): Promise<MembroPerfil | null> {
   const supabase = await createClient();
-  const campos = `${CAMPOS_MEMBRO}, bio, capa_url, cor_capa, especialidades, instagram, linkedin, site, auth_id, oculto`;
+  const campos = `${CAMPOS_MEMBRO}, bio, capa_url, cor_capa, especialidades, destaques, espaco, instagram, linkedin, youtube, tiktok, facebook, site, auth_id, oculto`;
   const ehUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOuId);
   const { data } = await supabase
     .from("perfis")
