@@ -201,7 +201,7 @@ export function TelaEntrar({ erro }: { erro?: string | null }) {
         <main className="rc-e-painel">
           <div className="rc-e-logo-celular">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/thb-logo.png" alt="Time Holding Brasil" />
+            <img src="/thb-logo-240.png" alt="Time Holding Brasil" />
           </div>
           {/* até o navegador dizer se há conta salva, o painel reserva o espaço sem piscar */}
           <div className={`rc-e-miolo${lendo ? " rc-e-oculto" : ""}`}>{miolo}</div>

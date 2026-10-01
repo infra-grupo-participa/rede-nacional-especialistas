@@ -80,12 +80,14 @@ export interface MembroPerfil extends MembroResumo {
   linkedin: string | null;
   site: string | null;
   tem_conta: boolean;
+  /** aparece na vitrine pública do blog (não pediu para ficar oculto) */
+  na_vitrine: boolean;
 }
 
 /** Perfil de um membro pelo slug (ou id). Só aprovado. */
 export async function membroPorSlug(slugOuId: string): Promise<MembroPerfil | null> {
   const supabase = await createClient();
-  const campos = `${CAMPOS_MEMBRO}, bio, capa_url, cor_capa, especialidades, instagram, linkedin, site, auth_id`;
+  const campos = `${CAMPOS_MEMBRO}, bio, capa_url, cor_capa, especialidades, instagram, linkedin, site, auth_id, oculto`;
   const ehUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOuId);
   const { data } = await supabase
     .from("perfis")
@@ -94,8 +96,8 @@ export async function membroPorSlug(slugOuId: string): Promise<MembroPerfil | nu
     .eq(ehUuid ? "id" : "slug", slugOuId)
     .maybeSingle();
   if (!data) return null;
-  const { auth_id, ...resto } = data as unknown as MembroPerfil & { auth_id: string | null };
-  return { ...resto, tem_conta: Boolean(auth_id) };
+  const { auth_id, oculto, ...resto } = data as unknown as MembroPerfil & { auth_id: string | null; oculto: boolean | null };
+  return { ...resto, tem_conta: Boolean(auth_id), na_vitrine: !oculto };
 }
 
 export interface AtividadeGrupo {

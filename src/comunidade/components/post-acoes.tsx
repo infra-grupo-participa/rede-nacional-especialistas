@@ -1,197 +1,237 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { C, F, BORDA } from "@/lib/tokens";
-import { Ico } from "@/components/icons";
+import { useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { IcoRC } from "@/comunidade/components/icones";
+import { DivisorMenu, ItemMenu, Menu } from "@/comunidade/components/ui";
 import { votar, apagarPost, fixarPost, travarComentarios } from "@/comunidade/acoes/feed";
 import type { PostFeed } from "@/comunidade/lib/feed";
+import type { Eu } from "@/comunidade/lib/sessao";
 
-/* Barra de ações do post (curtir/score, comentar, compartilhar). Reusada no card
-   do feed e na página do post. `onComentar` alterna os comentários no card; na
-   página do post os comentários já ficam abertos (semComentarInline). */
+/** Endereço do post para copiar e mandar a um colega (só membro abre). */
+function linkDoPost(postId: string): string {
+  return `${window.location.origin}/comunidade/post/${postId}`;
+}
+
+/** Copia para a área de transferência. Devolve false se o navegador negar. */
+async function copiarTexto(texto: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(texto);
+    return true;
+  } catch {
+    // sem a API (endereço sem https, navegador antigo): caminho de reserva
+    try {
+      const campo = document.createElement("textarea");
+      campo.value = texto;
+      campo.setAttribute("readonly", "");
+      campo.style.position = "fixed";
+      campo.style.opacity = "0";
+      document.body.appendChild(campo);
+      campo.select();
+      const ok = document.execCommand("copy");
+      campo.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+/* Linha de ações do post, como no grupo do Facebook: curtir (com o número),
+   comentar (com o número de comentários) e compartilhar (copia o link). */
 export function PostAcoes({
   post,
-  logado,
-  souAutor,
-  isAdmin,
+  nComentarios,
   onComentar,
-  semComentarInline,
 }: {
   post: PostFeed;
-  logado: boolean;
-  souAutor: boolean;
-  isAdmin: boolean;
-  onComentar?: () => void;
-  semComentarInline?: boolean;
+  /** contagem viva dos comentários (o cartão recebe da lista de comentários) */
+  nComentarios: number;
+  onComentar: () => void;
 }) {
-  const router = useRouter();
-  const [meuVoto, setMeuVoto] = useState(post.meu_voto);
-  const [score, setScore] = useState(post.score);
+  const [voto, setVoto] = useState({ meu: post.meu_voto, score: post.score });
   const [copiado, setCopiado] = useState(false);
   const [pending, start] = useTransition();
 
-  const aplicarVoto = (valor: 1 | -1) => {
-    if (!logado) {
-      window.location.href = "/comunidade/entrar";
-      return;
-    }
-    const anterior = meuVoto;
-    const novo = anterior === valor ? 0 : valor;
-    setMeuVoto(novo);
-    setScore((s) => s - anterior + novo);
-    start(async () => {
-      const r = await votar(post.id, valor);
-      if (r.erro) {
-        setMeuVoto(anterior);
-        setScore((s) => s - novo + anterior);
-      }
-    });
-  };
+  // Quando o servidor manda números novos (router.refresh), eles voltam a
+  // mandar: ajuste de estado durante o render, sem effect.
+  const [visto, setVisto] = useState({ meu: post.meu_voto, score: post.score });
+  if (visto.meu !== post.meu_voto || visto.score !== post.score) {
+    setVisto({ meu: post.meu_voto, score: post.score });
+    setVoto({ meu: post.meu_voto, score: post.score });
+  }
 
-  const remover = () => {
-    if (!confirm("Remover este post?")) return;
+  const curti = voto.meu === 1;
+
+  const curtir = () => {
+    const anterior = voto;
+    const novo = anterior.meu === 1 ? 0 : 1;
+    setVoto({ meu: novo, score: anterior.score - anterior.meu + novo });
     start(async () => {
-      const r = await apagarPost(post.id);
-      if (!r.erro) router.push("/comunidade");
+      const r = await votar(post.id, 1);
+      if (r.erro) setVoto(anterior);
     });
   };
 
   const compartilhar = async () => {
-    const url = `${window.location.origin}/comunidade/post/${post.id}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2000);
-    } catch {
-      /* silencioso */
+    const link = linkDoPost(post.id);
+    if (!(await copiarTexto(link))) {
+      // navegador que não deixa copiar sozinho: mostra o link para a pessoa copiar
+      window.prompt("Copie o link do post:", link);
+      return;
     }
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
   };
 
+  const rotuloCurtir = `${curti ? "Desfazer curtida" : "Curtir"}${voto.score > 0 ? ` (${voto.score} ${voto.score === 1 ? "curtida" : "curtidas"})` : ""}`;
+  const rotuloComentar = `Comentar${nComentarios > 0 ? ` (${nComentarios} ${nComentarios === 1 ? "comentário" : "comentários"})` : ""}`;
+
   return (
-    <div className="flex items-center gap-1 py-2.5" style={{ borderTop: `1px solid ${C.line}` }}>
-      <div className="flex items-center rounded-full" style={{ background: C.paper, border: `1px solid ${C.line}` }}>
-        <button onClick={() => aplicarVoto(1)} disabled={pending} aria-label="Curtir" className="flex items-center justify-center rounded-full" style={{ width: 36, height: 34, color: meuVoto === 1 ? C.laranja : C.muted }}>
-          <Ico.setaCima style={{ width: 17, height: 17 }} />
-        </button>
-        <span className="min-w-[20px] text-center text-[13px] font-bold tabular-nums" style={{ fontFamily: F.mono, color: meuVoto !== 0 ? C.ink : C.muted }}>
-          {score}
-        </span>
-        <button onClick={() => aplicarVoto(-1)} disabled={pending} aria-label="Descurtir" className="flex items-center justify-center rounded-full" style={{ width: 36, height: 34, color: meuVoto === -1 ? C.ink : C.muted }}>
-          <Ico.setaBaixo style={{ width: 17, height: 17 }} />
-        </button>
-      </div>
-
-      <button
-        onClick={() => (semComentarInline ? router.push(`/comunidade/post/${post.id}`) : onComentar?.())}
-        className="press ml-1 flex items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold"
-        style={{ height: 36, color: C.muted }}
-      >
-        <Ico.balao style={{ width: 16, height: 16 }} />
-        {post.n_comentarios > 0 ? post.n_comentarios : "Comentar"}
+    <div className="rc-post-acoes">
+      <button type="button" className="rc-acao" data-ativo={curti || undefined} aria-pressed={curti} aria-label={rotuloCurtir} title={curti ? "Desfazer curtida" : "Curtir"} disabled={pending} onClick={curtir}>
+        {curti ? <IcoRC.curtido /> : <IcoRC.curtir />}
+        {voto.score > 0 && <span>{voto.score}</span>}
       </button>
-
-      <button onClick={compartilhar} className="press ml-auto flex items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold" style={{ height: 36, color: copiado ? C.petrolDeep : C.muted }}>
-        <Ico.share style={{ width: 15, height: 15 }} />
-        {copiado ? "Copiado" : "Compartilhar"}
+      <button type="button" className="rc-acao" aria-label={rotuloComentar} title="Comentar" onClick={onComentar}>
+        <IcoRC.comentar />
+        {nComentarios > 0 && <span>{nComentarios}</span>}
       </button>
-
-      {isAdmin ? (
-        <MenuModeracao post={post} onRemover={remover} />
-      ) : (
-        souAutor && (
-          <button onClick={remover} disabled={pending} aria-label="Remover post" className="flex items-center justify-center rounded-full" style={{ width: 34, height: 34, color: C.muted }}>
-            <Ico.lixo style={{ width: 15, height: 15 }} />
-          </button>
-        )
-      )}
+      <button type="button" className="rc-acao" aria-label="Compartilhar: copiar o link do post" title="Copiar o link do post" onClick={compartilhar}>
+        <IcoRC.compartilhar />
+        {copiado && (
+          <span className="rc-acao-nota" role="status">
+            Link copiado
+          </span>
+        )}
+      </button>
     </div>
   );
 }
 
-/* Menu da coordenação no post: fixar em destaque, travar/liberar comentários
-   (com motivo) e remover. Cada ação cai no registro de atividades do banco. */
-function MenuModeracao({ post, onRemover }: { post: PostFeed; onRemover: () => void }) {
+/* Menu "…" do post: copiar o link; quem escreveu (ou a coordenação) remove; a
+   coordenação fixa em destaque e trava ou libera os comentários (com motivo).
+   Cada ação de moderação cai no registro de atividades do banco. */
+export function MenuPost({
+  post,
+  eu,
+  onRemovido,
+}: {
+  post: PostFeed;
+  eu: Eu;
+  /** o cartão some da tela assim que o post é removido */
+  onRemovido?: () => void;
+}) {
   const router = useRouter();
-  const [aberto, setAberto] = useState(false);
+  const pathname = usePathname();
   const [erro, setErro] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
   const [pending, start] = useTransition();
-  const ref = useRef<HTMLDivElement>(null);
+  const souAutor = eu.perfilId === post.autor.id;
 
-  useEffect(() => {
-    if (!aberto) return;
-    const fora = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setAberto(false);
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && setAberto(false);
-    document.addEventListener("mousedown", fora);
-    document.addEventListener("keydown", esc);
-    return () => {
-      document.removeEventListener("mousedown", fora);
-      document.removeEventListener("keydown", esc);
-    };
-  }, [aberto]);
-
-  const executar = (fn: () => Promise<{ erro?: string }>) =>
+  const executar = (fn: () => Promise<{ erro?: string }>, fechar: () => void) =>
     start(async () => {
+      setErro(null);
       const r = await fn();
       if (r.erro) setErro(r.erro);
       else {
-        setAberto(false);
+        fechar();
         router.refresh();
       }
     });
 
-  const alternarTrava = () => {
+  const alternarTrava = (fechar: () => void) => {
     if (post.comentarios_travados) {
-      executar(() => travarComentarios(post.id, false));
+      executar(() => travarComentarios(post.id, false), fechar);
       return;
     }
     const motivo = prompt("Motivo da trava (aparece para os membros). Pode deixar em branco.", "Post fora da regra da #.");
     if (motivo === null) return;
-    executar(() => travarComentarios(post.id, true, motivo));
+    executar(() => travarComentarios(post.id, true, motivo), fechar);
   };
 
-  const item = "flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[14px] font-semibold";
+  const remover = (fechar: () => void) => {
+    if (!confirm("Remover este post?")) return;
+    start(async () => {
+      setErro(null);
+      const r = await apagarPost(post.id);
+      if (r.erro) {
+        setErro(r.erro);
+        return;
+      }
+      fechar();
+      onRemovido?.();
+      // na página do próprio post não sobra o que mostrar: volta para a Discussão
+      if (pathname.startsWith("/comunidade/post/")) router.push("/comunidade");
+      else router.refresh();
+    });
+  };
+
+  const copiar = async (fechar: () => void) => {
+    const link = linkDoPost(post.id);
+    if (!(await copiarTexto(link))) {
+      // navegador que não deixa copiar sozinho: mostra o link para a pessoa copiar
+      fechar();
+      window.prompt("Copie o link do post:", link);
+      return;
+    }
+    setErro(null);
+    setCopiado(true);
+    setTimeout(() => {
+      setCopiado(false);
+      fechar();
+    }, 1200);
+  };
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setAberto((v) => !v)}
-        aria-label="Moderação"
-        aria-expanded={aberto}
-        className="flex items-center justify-center rounded-full"
-        style={{ width: 34, height: 34, color: C.muted }}
-      >
-        <Ico.escudo style={{ width: 16, height: 16 }} />
-      </button>
-      {aberto && (
-        <div
-          role="menu"
-          className="anim-fade absolute bottom-10 right-0 z-30 w-60 overflow-hidden rounded-2xl"
-          style={{ background: C.surface, border: BORDA, boxShadow: "0 16px 40px rgba(17,17,17,.16)" }}
-        >
-          <p className="px-3.5 pb-1 pt-2.5 text-[11px] uppercase" style={{ color: C.muted, fontFamily: F.mono, letterSpacing: ".12em" }}>
-            Moderação
-          </p>
-          <button role="menuitem" disabled={pending} onClick={() => executar(() => fixarPost(post.id, !post.fixado))} className={item} style={{ color: C.ink }}>
-            <Ico.pin style={{ width: 16, height: 16, color: C.muted }} />
-            {post.fixado ? "Tirar do destaque" : "Fixar em destaque"}
-          </button>
-          <button role="menuitem" disabled={pending} onClick={alternarTrava} className={item} style={{ color: C.ink }}>
-            <Ico.balao style={{ width: 16, height: 16, color: C.muted }} />
-            {post.comentarios_travados ? "Liberar comentários" : "Travar comentários"}
-          </button>
-          <div style={{ borderTop: BORDA }} />
-          <button role="menuitem" disabled={pending} onClick={onRemover} className={item} style={{ color: "#B24A42" }}>
-            <Ico.lixo style={{ width: 16, height: 16 }} />
-            Remover post
-          </button>
+    <Menu
+      rotulo="Opções do post"
+      gatilho={({ aberto, alternar }) => (
+        <button type="button" className="rc-post-pontos" aria-label="Opções do post" aria-haspopup="menu" aria-expanded={aberto} onClick={alternar}>
+          <IcoRC.pontos />
+        </button>
+      )}
+    >
+      {(fechar) => (
+        <>
+          <ItemMenu icone={copiado ? <IcoRC.marcado /> : <IcoRC.link />} onClick={() => copiar(fechar)}>
+            {copiado ? "Link copiado" : "Copiar link do post"}
+          </ItemMenu>
+          {eu.isAdmin && (
+            <>
+              <ItemMenu
+                icone={<IcoRC.pin />}
+                disabled={pending}
+                onClick={() => executar(() => fixarPost(post.id, !post.fixado), fechar)}
+                sub={post.fixado ? "Sai da caixa Em destaque" : "Vai para a caixa Em destaque"}
+              >
+                {post.fixado ? "Tirar do destaque" : "Fixar em destaque"}
+              </ItemMenu>
+              <ItemMenu
+                icone={post.comentarios_travados ? <IcoRC.comentar /> : <IcoRC.balaoTravado />}
+                disabled={pending}
+                onClick={() => alternarTrava(fechar)}
+                sub={post.comentarios_travados ? "Os membros voltam a comentar" : "Só a coordenação comenta"}
+              >
+                {post.comentarios_travados ? "Liberar comentários" : "Travar comentários"}
+              </ItemMenu>
+            </>
+          )}
+          {(souAutor || eu.isAdmin) && (
+            <>
+              <DivisorMenu />
+              <ItemMenu icone={<IcoRC.lixo />} perigo disabled={pending} onClick={() => remover(fechar)}>
+                Remover post
+              </ItemMenu>
+            </>
+          )}
           {erro && (
-            <p className="px-3.5 pb-2.5 text-[12px]" style={{ color: "#B24A42" }}>
+            <p className="rc-erro-texto rc-menu-erro" role="alert">
               {erro}
             </p>
           )}
-        </div>
+        </>
       )}
-    </div>
+    </Menu>
   );
 }

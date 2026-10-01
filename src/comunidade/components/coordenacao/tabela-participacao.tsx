@@ -5,6 +5,7 @@ import Link from "next/link";
 import { C, F, BORDA } from "@/lib/tokens";
 import { SeloVerificado, TagNivel } from "@/comunidade/components/atoms";
 import type { LinhaParticipacao } from "@/comunidade/lib/gestao";
+import { hrefMembro } from "@/comunidade/lib/grupo-tipos";
 import { GerenciarMembro, type MembroGerenciavel } from "./gerenciar-membro";
 
 const POR_PAGINA = 100;
@@ -75,8 +76,8 @@ export function TabelaParticipacao({
               return (
                 <tr key={l.perfil_id} style={{ borderTop: BORDA }}>
                   <td className={`${td} max-w-[260px]`}>
-                    {l.slug ? (
-                      <Link href={`/especialista/${l.slug}`} target="_blank" className="flex min-w-0 items-center gap-1 font-semibold" style={{ color: C.ink }}>
+                    {l.status === "aprovado" ? (
+                      <Link href={hrefMembro({ slug: l.slug, id: l.perfil_id })} className="flex min-w-0 items-center gap-1 font-semibold" style={{ color: C.ink }}>
                         <span className="truncate">{l.nome || "(sem nome)"}</span>
                         {selo.has(l.perfil_id) && <SeloVerificado size="sm" />}
                       </Link>

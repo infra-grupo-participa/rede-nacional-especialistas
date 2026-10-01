@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getPerfilAtual } from "@/comunidade/lib/sessao";
+import { CAMPOS_COMENTARIO } from "@/comunidade/lib/feed-tipos";
 import { limparBusca } from "@/comunidade/lib/grupo-tipos";
 import type { Qualificacao } from "@/comunidade/lib/qualificacoes";
 
@@ -49,8 +50,7 @@ export interface ComentarioFeed {
   autor: AutorResumo;
 }
 
-/** Colunas de um comentário com o autor (mesma lista no servidor e no navegador). */
-export const CAMPOS_COMENTARIO = "id, parent_id, corpo, criado_em, autor:autor_id (id, slug, nome, avatar_url, qualificacao, verificado)";
+export { CAMPOS_COMENTARIO } from "@/comunidade/lib/feed-tipos";
 
 const CAMPOS_AUTOR = "id, slug, nome, avatar_url, qualificacao, headline, profissao, verificado";
 

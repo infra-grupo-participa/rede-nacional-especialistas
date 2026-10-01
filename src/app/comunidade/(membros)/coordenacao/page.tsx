@@ -3,6 +3,7 @@ import { C, F, BORDA } from "@/lib/tokens";
 import { exigirAdminPagina } from "@/comunidade/lib/admin";
 import { contadoresCoordenacao, hojeSP, insights, periodoDe } from "@/comunidade/lib/gestao";
 import { nivelDe, NIVEIS_ORDENADOS } from "@/comunidade/lib/qualificacoes";
+import { hrefMembro } from "@/comunidade/lib/grupo-tipos";
 import { TagNivel } from "@/comunidade/components/atoms";
 import { CabecalhoCoordenacao, Caixa } from "@/comunidade/components/coordenacao/cabecalho";
 import { SeletorPeriodo } from "@/comunidade/components/coordenacao/seletor-periodo";
@@ -173,7 +174,7 @@ export default async function VisaoGeralPage({
                     <span className="w-5 shrink-0 text-right tabular-nums" style={{ color: C.muted, fontFamily: F.mono }}>
                       {i + 1}
                     </span>
-                    <Link href={`/especialista/${c.slug ?? c.id}`} className="min-w-0 truncate font-semibold">
+                    <Link href={hrefMembro(c)} className="min-w-0 truncate font-semibold">
                       {c.nome}
                     </Link>
                     <TagNivel qualificacao={c.qualificacao} size="sm" />

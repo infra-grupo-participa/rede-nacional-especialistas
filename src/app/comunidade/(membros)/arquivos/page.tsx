@@ -1,29 +1,34 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { exigirMembro } from "@/comunidade/lib/sessao";
-import { listarArquivos, midiasDosPosts } from "@/comunidade/lib/arquivos";
+import { listarArquivos } from "@/comunidade/lib/arquivos";
 import { AbaArquivos } from "@/comunidade/components/arquivos/aba-arquivos";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Arquivos e mídias",
+  title: "Arquivos",
 };
 
+/* Aba Arquivos: documentos e links de apoio. Fotos e vídeos ficam na aba
+   Mídia; o endereço antigo (?aba=midias) leva para lá. */
 export default async function ArquivosPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const sp = await searchParams;
   const perfil = await exigirMembro();
-  const [arquivos, midias] = await Promise.all([listarArquivos(), midiasDosPosts()]);
+  const sp = await searchParams;
+  if (sp.aba === "midias") redirect("/comunidade/midia");
+
+  const arquivos = await listarArquivos();
 
   return (
     <main>
       <AbaArquivos
-        arquivos={arquivos}
-        midias={midias}
-        abaInicial={sp.aba === "midias" ? "midias" : "arquivos"}
+        arquivos={arquivos.filter((a) => a.tipo === "documento" || a.tipo === "link")}
+        midias={[]}
+        somente="arquivos"
         perfilId={perfil.id}
         isAdmin={perfil.papel === "admin"}
       />

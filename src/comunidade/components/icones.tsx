@@ -230,4 +230,45 @@ export const IcoRC = {
       <path d="M12 11v5.5M12 7.5v.1" />
     </Svg>
   ),
+  enviar: (p: P) => (
+    <Svg {...p} cheio>
+      <path d="M3.4 20.4 21.6 12.6a.65.65 0 0 0 0-1.2L3.4 3.6a.5.5 0 0 0-.7.6l2.2 6.1 8.6 1.7-8.6 1.7-2.2 6.1a.5.5 0 0 0 .7.6z" />
+    </Svg>
+  ),
+  marcado: (p: P) => (
+    <Svg {...p}>
+      <path d="M5 12.5 10 17.5 19.5 7" />
+    </Svg>
+  ),
+  /* Frente C: abas Sobre, Mídia e Arquivos */
+  calendario: (p: P) => (
+    <Svg {...p}>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+    </Svg>
+  ),
+  documento: (p: P) => (
+    <Svg {...p}>
+      <path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.500z" />
+      <path d="M13.5 3v5.5H19M9 13h6M9 16.5h6" />
+    </Svg>
+  ),
+  video: (p: P) => (
+    <Svg {...p} cheio>
+      <path d="M8 5.2v13.600a.8.8 0 0 0 1.2.700l11-6.800a.8.8 0 0 0 0-1.400l-11-6.800A.8.8 0 0 0 8 5.200z" />
+    </Svg>
+  ),
+  local: (p: P) => (
+    <Svg {...p}>
+      <path d="M12 21.500s7-6.300 7-11.500a7 7 0 1 0-14 0c0 5.200 7 11.500 7 11.500z" />
+      <circle cx="12" cy="10" r="2.600" />
+    </Svg>
+  ),
+  /* Frente A: casco e cabeçalho do grupo */
+  regras: (p: P) => (
+    <Svg {...p}>
+      <rect x="4.5" y="4" width="15" height="17" rx="2.5" />
+      <path d="M9 4V3h6v1M8.500 10l1.300 1.300L12 9M8.500 15.500l1.300 1.300L12 14.500M14.500 10.500h2M14.500 16h2" />
+    </Svg>
+  ),
 };

@@ -73,7 +73,7 @@ export function ArteRede() {
       {/* círculo com a marca */}
       <div className="rc-arte-rosto">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/thb-logo.png" alt="" />
+        <img src="/thb-logo-240.png" alt="" />
       </div>
 
       {/* peças soltas: voto, selo de verificado e hashtag */}
