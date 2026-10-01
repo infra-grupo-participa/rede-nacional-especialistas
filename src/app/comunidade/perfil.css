@@ -21,6 +21,9 @@
 }
 
 /* ---- capa ---- */
+.rc-perfil-capa-caixa {
+  position: relative;
+}
 .rc-perfil-capa {
   position: relative;
   aspect-ratio: 2.7 / 1;
@@ -43,7 +46,7 @@
   position: absolute;
   right: 32px;
   bottom: 16px;
-  z-index: 2;
+  z-index: 5; /* o menu abre por cima da foto e do nome */
 }
 .rc-perfil-btn-capa {
   background: #ffffff;
