@@ -93,7 +93,11 @@ mapeamento de funcionalidades e necessidades". Tudo na rota `/coordenacao/*`
   no update do próprio dono (`guard_perfil_update`).
 
 ## Deploy
-Push na main → Node App Hostinger (auto-deploy, padrão gps-thb/central-de-projetos). Domínio a definir.
+Push na main → Node App Hostinger (auto-deploy, padrão gps-thb/central-de-projetos), no ar em
+`blog.timeholdingbrasil.com.br`. **O build é webpack** (`next build --webpack`): o Turbopack
+quebra na Hostinger desde 29/09/2026 e build com falha mantém o site antigo em silêncio.
+Sempre confirme no ar depois do push (ver `DEPLOY.md`). Migration nova vai para o Supabase
+ANTES do merge.
 
 ## Convenções
 - Português correto com acentuação em toda a UI e comentários.
