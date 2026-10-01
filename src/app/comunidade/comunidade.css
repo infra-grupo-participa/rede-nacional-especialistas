@@ -180,9 +180,9 @@
   color: var(--e-suave);
   opacity: 1; /* o ::placeholder global aplica 0.7 e derruba o contraste */
 }
-/* o Edge desenha o próprio olhinho no campo de senha: fica só o nosso */
-.rc-e-campo::-ms-reveal,
-.rc-e-campo::-ms-clear {
+/* o Edge desenha o próprio olhinho no campo de senha: fica só o nosso. Regra
+   isolada de propósito: outro pseudo-elemento na lista invalidaria tudo. */
+.rc-e-campo::-ms-reveal {
   display: none;
 }
 .rc-e-campo:focus {
