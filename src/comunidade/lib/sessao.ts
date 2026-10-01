@@ -48,6 +48,26 @@ export async function getSessaoNav(): Promise<SessaoNav> {
   };
 }
 
+/** Quem está olhando a tela (o membro logado), no formato que os componentes
+ *  de post, comentário e criar post recebem. */
+export interface Eu {
+  perfilId: string;
+  nome: string;
+  primeiroNome: string;
+  avatar: string | null;
+  isAdmin: boolean;
+}
+
+export function euDe(perfil: PerfilRede): Eu {
+  return {
+    perfilId: perfil.id,
+    nome: perfil.nome,
+    primeiroNome: perfil.nome.split(" ")[0],
+    avatar: perfil.avatar_url || null,
+    isAdmin: perfil.papel === "admin" && perfil.status === "aprovado",
+  };
+}
+
 /** Porta da comunidade: sem login vai para a tela de entrada; com login e sem
  *  aprovação, para o questionário. A RLS garante o mesmo no banco; aqui é o
  *  caminho certo para cada caso. */
