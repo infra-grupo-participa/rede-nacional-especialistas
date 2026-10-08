@@ -77,6 +77,8 @@ function ehNavegacaoDaComunidade(request: NextRequest): boolean {
   if (request.method !== "GET") return false;
   const caminho = request.nextUrl.pathname;
   if (caminho !== "/comunidade" && !caminho.startsWith("/comunidade/")) return false;
+  // O diagnóstico é isca de lead, não uso da comunidade (pedido do Iromar, 08/10/2026).
+  if (caminho === "/comunidade/diagnostico" || caminho.startsWith("/comunidade/diagnostico/")) return false;
   const h = request.headers;
   if (h.get("next-router-prefetch") || h.get("purpose") === "prefetch") return false;
   return true;
