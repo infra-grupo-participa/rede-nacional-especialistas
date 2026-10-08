@@ -1,4 +1,4 @@
--- Diagnóstico de Holding Familiar. Arquivo para revisão, sem aplicação em produção.
+-- Diagnóstico de Holding Familiar. Aplicada em produção (mbvybujpkwuorhtdzcde) em 08/10/2026.
 -- A pontuação é calculada por calcular() no servidor Next; não vem do navegador.
 -- A RPC autenticada valida e recalcula no banco, sem chave de serviço no app.
 
