@@ -6,6 +6,7 @@ import "./feed.css";
 import "./reacoes.css";
 import "./paginas.css";
 import "./perfil.css";
+import "./diagnostico.css";
 
 /* Rede de Especialistas (v2). Mora em /comunidade, separada do blog: tela de
    entrada própria e, depois do login, a comunidade com cara de grupo. Nada
